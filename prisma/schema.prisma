@@ -1,0 +1,239 @@
+// CompetitorIQ – AI Competitor Intelligence Agent
+// Prisma schema for SQLite (sandbox)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  role      String   @default("Admin") // Admin | Analyst | Viewer
+  company   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Competitor {
+  id          String   @id @default(cuid())
+  name        String
+  industry    String
+  website     String
+  country     String
+  description String?
+  priority    String   @default("Medium") // High | Medium | Low
+  logo        String?
+  status      String   @default("Active") // Active | Paused
+  foundedYear Int?
+  employees   String?
+  revenue     String?
+  socialLinks String?  // JSON string
+  productCatalog String? // JSON string
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  websiteChanges WebsiteChange[]
+  products       Product[]
+  pricingHistory PricingHistory[]
+  newsArticles   NewsArticle[]
+  socialPosts    SocialPost[]
+  jobPostings    JobPosting[]
+  reviews        Review[]
+  swotAnalyses   SwotAnalysis[]
+  alerts         Alert[]
+  insights       Insight[]
+}
+
+model WebsiteChange {
+  id            String   @id @default(cuid())
+  competitorId  String
+  competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  pageType      String   // Homepage | Products | Features | Pricing | Blog | Docs | Support
+  pageTitle     String
+  pageUrl       String
+  changeType    String   // NewPage | RemovedPage | TextChange | UIChange | CTAChange | FeatureUpdate
+  beforeContent String?
+  afterContent  String?
+  summary       String?
+  severity      String   @default("Low") // Critical | High | Medium | Low
+  detectedAt    DateTime @default(now())
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  name         String
+  category     String
+  description  String?
+  features     String?  // JSON array
+  integrations String?  // JSON array
+  releaseDate  DateTime?
+  version      String?
+  status       String   @default("Active") // Active | Deprecated | Beta
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model PricingHistory {
+  id           String   @id @default(cuid())
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  planName     String
+  tier         String   // Free | Starter | Pro | Enterprise
+  billingCycle String   // Monthly | Annual
+  price        Float
+  previousPrice Float?
+  currency     String   @default("USD")
+  discount     String?
+  changedAt    DateTime @default(now())
+}
+
+model NewsArticle {
+  id           String   @id @default(cuid())
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  title        String
+  source       String   // Google News | RSS | Press Release | Blog
+  url          String?
+  summary      String?
+  category     String   // Funding | Acquisition | Expansion | Partnership | Award | Leadership | Product Launch
+  sentiment    String   @default("Neutral") // Positive | Negative | Neutral
+  impact       String   @default("Medium") // High | Medium | Low
+  publishedAt  DateTime
+  collectedAt  DateTime @default(now())
+}
+
+model SocialPost {
+  id           String   @id @default(cuid())
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  platform     String   // LinkedIn | X | YouTube | Instagram | Facebook
+  content      String
+  postUrl      String?
+  likes        Int      @default(0)
+  comments     Int      @default(0)
+  shares       Int      @default(0)
+  views        Int      @default(0)
+  postType     String   // Post | Campaign | Announcement | Video | Event
+  sentiment    String   @default("Neutral")
+  publishedAt  DateTime
+  collectedAt  DateTime @default(now())
+}
+
+model JobPosting {
+  id           String   @id @default(cuid())
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  title        String
+  department   String   // Engineering | Sales | Marketing | AI | Product | Operations
+  seniority    String   // Junior | Mid | Senior | Lead | Director
+  location     String
+  jobType      String   // Full-time | Contract | Remote | Hybrid
+  source       String   // LinkedIn | Indeed | Greenhouse | Careers Page
+  url          String?
+  postedAt     DateTime
+  collectedAt  DateTime @default(now())
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  source       String   // G2 | Capterra | Product Hunt | Trustpilot | Google Reviews
+  author       String?
+  rating       Float    // 0-5
+  title        String
+  content      String
+  sentiment    String   @default("Neutral")
+  category     String?  // Feature Request | Complaint | Praise | Bug | Question
+  publishedAt  DateTime
+  collectedAt  DateTime @default(now())
+}
+
+model SwotAnalysis {
+  id           String   @id @default(cuid())
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  strengths    String   // JSON array
+  weaknesses   String   // JSON array
+  opportunities String  // JSON array
+  threats      String   // JSON array
+  summary      String?
+  generatedAt  DateTime @default(now())
+}
+
+model Insight {
+  id           String   @id @default(cuid())
+  competitorId String?
+  competitor   Competitor? @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  agentType    String   // WebsiteAgent | NewsAgent | PricingAgent | ProductAgent | ReviewAgent | TrendAgent | SWOTAgent | ReportAgent | RecommendationAgent
+  title        String
+  content      String
+  impact       String   @default("Medium")
+  createdAt    DateTime @default(now())
+}
+
+model Alert {
+  id           String   @id @default(cuid())
+  competitorId String?
+  competitor   Competitor? @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  type         String   // PriceChange | ProductLaunch | News | Hiring | WebsiteChange | SocialMention | Review
+  severity     String   // Critical | High | Medium | Low
+  title        String
+  message      String
+  recommendation String?
+  isRead       Boolean  @default(false)
+  isResolved   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model Report {
+  id           String   @id @default(cuid())
+  title        String
+  reportType   String   // Daily | Weekly | Monthly | Executive | Custom
+  period       String
+  content      String   // markdown
+  highlights   String?  // JSON array
+  generatedAt  DateTime @default(now())
+}
+
+model ChatHistory {
+  id        String   @id @default(cuid())
+  userId    String   @default("default-user")
+  role      String   // user | assistant
+  content   String
+  context   String?  // JSON
+  createdAt DateTime @default(now())
+}
+
+model Agent {
+  id           String   @id @default(cuid())
+  name         String
+  type         String   // WebsiteAgent | NewsAgent | PricingAgent | ProductAgent | ReviewAgent | TrendAgent | SWOTAgent | ReportAgent | RecommendationAgent | SocialAgent | CareerAgent
+  description  String
+  status       String   @default("Active") // Active | Idle | Paused | Error
+  lastRun      DateTime?
+  interval     String   // hourly | daily | weekly
+  itemsProcessed Int    @default(0)
+  successRate  Float    @default(100.0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String   @default("default-user")
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  createdAt DateTime @default(now())
+}
