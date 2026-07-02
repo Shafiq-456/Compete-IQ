@@ -11,8 +11,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageHeader, timeAgo, EmptyState } from '@/components/shared/primitives'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, staggerContainerFast } from '@/lib/animations'
 
-const COLORS = ['#10b981', '#06b6d4', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
+const COLORS = ['#22d3ee', '#e879f9', '#fbbf24', '#a3e635', '#a78bfa', '#38bdf8', '#fb7185', '#fb923c']
 
 export function CareersView() {
   const [competitorId, setCompetitorId] = React.useState('all')
@@ -48,33 +50,35 @@ export function CareersView() {
   const competitorChart = Object.entries(byCompetitor).map(([name, count]) => ({ name, count }))
 
   return (
-    <div>
-      <PageHeader
-        title="Career Intelligence"
-        description="AI agent monitors job postings — hiring signals, team expansion, and strategic direction"
-        icon={Users}
-        actions={
-          <Select value={competitorId} onValueChange={setCompetitorId}>
-            <SelectTrigger className="w-48"><SelectValue placeholder="All competitors" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All competitors</SelectItem>
-              {(compData?.competitors ?? []).map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="Career Intelligence"
+          description="AI agent monitors job postings — hiring signals, team expansion, and strategic direction"
+          icon={Users}
+          actions={
+            <Select value={competitorId} onValueChange={setCompetitorId}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="All competitors" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All competitors</SelectItem>
+                {(compData?.competitors ?? []).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+      </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <StatTile icon={Briefcase} label="Open Positions" value={jobs.length} color="text-emerald-500" />
-        <StatTile icon={Users} label="AI Roles" value={jobs.filter((j) => j.department === 'AI').length} color="text-cyan-500" />
-        <StatTile icon={TrendingUp} label="Senior+" value={jobs.filter((j) => ['Senior', 'Lead', 'Director'].includes(j.seniority)).length} color="text-amber-500" />
-        <StatTile icon={MapPin} label="Remote" value={jobs.filter((j) => j.jobType === 'Remote' || j.location?.includes('Remote')).length} color="text-purple-500" />
-      </div>
+      <motion.div variants={staggerContainerFast} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <StatTile icon={Briefcase} label="Open Positions" value={jobs.length} color="text-chart-1" />
+        <StatTile icon={Users} label="AI Roles" value={jobs.filter((j) => j.department === 'AI').length} color="text-chart-2" />
+        <StatTile icon={TrendingUp} label="Senior+" value={jobs.filter((j) => ['Senior', 'Lead', 'Director'].includes(j.seniority)).length} color="text-chart-3" />
+        <StatTile icon={MapPin} label="Remote" value={jobs.filter((j) => j.jobType === 'Remote' || j.location?.includes('Remote')).length} color="text-chart-5" />
+      </motion.div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Open Roles by Competitor</CardTitle>
@@ -112,27 +116,35 @@ export function CareersView() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
       {/* Department summary */}
-      <Card className="mb-4">
+      <motion.div variants={fadeUp} className="mb-4">
+      <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">By Department</CardTitle>
           <CardDescription>Where competitors are investing headcount</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          <motion.div
+            variants={staggerContainerFast}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2"
+          >
             {Object.entries(deptCounts).sort((a, b) => b[1] - a[1]).map(([dept, count], i) => (
-              <div key={dept} className="rounded-lg border p-3 text-center">
+              <motion.div key={dept} variants={fadeUp} className="rounded-lg border p-3 text-center">
                 <p className="text-2xl font-bold" style={{ color: COLORS[i % COLORS.length] }}>{count}</p>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">{dept}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* Jobs list */}
+      <motion.div variants={fadeUp}>
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Recent Job Postings</CardTitle>
@@ -167,7 +179,8 @@ export function CareersView() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }
 

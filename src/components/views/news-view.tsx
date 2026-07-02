@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { PageHeader, SeverityBadge, SentimentBadge, timeAgo, EmptyState } from '@/components/shared/primitives'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, slideInRight } from '@/lib/animations'
 
 const CATEGORIES = ['Funding', 'Acquisition', 'Expansion', 'Partnership', 'Award', 'Leadership', 'Product Launch']
 
@@ -28,26 +30,28 @@ export function NewsView() {
   for (const n of news) categoryCounts[n.category] = (categoryCounts[n.category] || 0) + 1
 
   return (
-    <div>
-      <PageHeader
-        title="News Intelligence"
-        description="AI agent summarizes competitor news — funding, M&A, partnerships, leadership, and product launches"
-        icon={Newspaper}
-        actions={
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="All categories" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {CATEGORIES.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="News Intelligence"
+          description="AI agent summarizes competitor news — funding, M&A, partnerships, leadership, and product launches"
+          icon={Newspaper}
+          actions={
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-44"><SelectValue placeholder="All categories" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+      </motion.div>
 
       {/* Category tabs */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <motion.div variants={fadeUp} className="flex flex-wrap gap-2 mb-4">
         <button
           onClick={() => setCategory('all')}
           className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${category === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'bg-card hover:bg-muted'}`}
@@ -63,14 +67,20 @@ export function NewsView() {
             {cat} ({categoryCounts[cat] ?? 0})
           </button>
         ))}
-      </div>
+      </motion.div>
 
       {news.length === 0 ? (
         <EmptyState icon={Newspaper} title="No news articles yet" description="The News Agent is scanning Google News, RSS feeds, and press releases." />
       ) : (
-        <div className="space-y-3">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          className="space-y-3"
+        >
           {news.map((n) => (
-            <Card key={n.id} className="hover:border-primary/30 transition-colors">
+            <motion.div key={n.id} variants={slideInRight}>
+            <Card className="hover:border-primary/30 transition-colors">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="size-10 rounded-lg bg-muted flex items-center justify-center text-lg shrink-0">
@@ -98,9 +108,10 @@ export function NewsView() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }

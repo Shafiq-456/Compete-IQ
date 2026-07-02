@@ -78,7 +78,7 @@ function AppShell() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen">
       <Sidebar
         active={active}
         onChange={setActive}

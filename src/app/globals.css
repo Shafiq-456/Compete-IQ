@@ -43,88 +43,219 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ============================================================
+   FROST AURORA (LIGHT) — soft cream-lavender base, deep cyan/magenta accents
+   ============================================================ */
 :root {
   --radius: 0.625rem;
-  /* Light: clean white with emerald accents */
-  --background: oklch(0.985 0.005 165);
-  --foreground: oklch(0.18 0.02 200);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 200);
+  --background: oklch(0.98 0.012 280);              /* very soft cream-lavender */
+  --foreground: oklch(0.20 0.04 280);               /* deep indigo */
+  --card: oklch(1 0 0);                             /* pure white */
+  --card-foreground: oklch(0.20 0.04 280);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 200);
-  --primary: oklch(0.55 0.13 165);            /* emerald */
+  --popover-foreground: oklch(0.20 0.04 280);
+  --primary: oklch(0.55 0.16 200);                  /* deeper cyan */
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 165);
-  --secondary-foreground: oklch(0.25 0.02 165);
-  --muted: oklch(0.96 0.005 165);
-  --muted-foreground: oklch(0.5 0.015 200);
-  --accent: oklch(0.93 0.04 165);
-  --accent-foreground: oklch(0.25 0.05 165);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.01 165);
-  --input: oklch(0.92 0.01 165);
-  --ring: oklch(0.55 0.13 165);
-  /* chart palette: emerald / teal / amber / rose / cyan */
-  --chart-1: oklch(0.6 0.13 165);
-  --chart-2: oklch(0.65 0.11 200);
-  --chart-3: oklch(0.78 0.15 80);
-  --chart-4: oklch(0.62 0.22 16);
-  --chart-5: oklch(0.7 0.13 230);
-  --sidebar: oklch(0.99 0.005 165);
-  --sidebar-foreground: oklch(0.18 0.02 200);
-  --sidebar-primary: oklch(0.55 0.13 165);
+  --secondary: oklch(0.95 0.025 280);
+  --secondary-foreground: oklch(0.25 0.05 280);
+  --muted: oklch(0.95 0.018 280);
+  --muted-foreground: oklch(0.45 0.03 280);
+  --accent: oklch(0.92 0.06 350);                   /* soft magenta tint */
+  --accent-foreground: oklch(0.30 0.18 350);
+  --destructive: oklch(0.58 0.22 16);
+  --border: oklch(0.90 0.02 280);
+  --input: oklch(0.90 0.02 280);
+  --ring: oklch(0.55 0.16 200);
+  /* aurora neon chart palette */
+  --chart-1: oklch(0.60 0.16 200);                  /* cyan */
+  --chart-2: oklch(0.55 0.24 350);                  /* magenta */
+  --chart-3: oklch(0.72 0.16 85);                   /* amber/gold */
+  --chart-4: oklch(0.68 0.18 130);                  /* lime */
+  --chart-5: oklch(0.55 0.20 290);                  /* violet */
+  --sidebar: oklch(0.97 0.014 280);
+  --sidebar-foreground: oklch(0.20 0.04 280);
+  --sidebar-primary: oklch(0.55 0.16 200);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.93 0.04 165);
-  --sidebar-accent-foreground: oklch(0.25 0.05 165);
-  --sidebar-border: oklch(0.92 0.01 165);
-  --sidebar-ring: oklch(0.55 0.13 165);
+  --sidebar-accent: oklch(0.93 0.04 280);
+  --sidebar-accent-foreground: oklch(0.30 0.12 350);
+  --sidebar-border: oklch(0.90 0.02 280);
+  --sidebar-ring: oklch(0.55 0.16 200);
 }
 
+/* ============================================================
+   AURORA CYBERPUNK (DARK) — deep midnight indigo + electric cyan/magenta/violet
+   ============================================================ */
 .dark {
-  /* Dark: deep slate with emerald accents */
-  --background: oklch(0.16 0.012 220);
-  --foreground: oklch(0.97 0.005 165);
-  --card: oklch(0.21 0.015 220);
-  --card-foreground: oklch(0.97 0.005 165);
-  --popover: oklch(0.21 0.015 220);
-  --popover-foreground: oklch(0.97 0.005 165);
-  --primary: oklch(0.7 0.15 165);
-  --primary-foreground: oklch(0.15 0.02 220);
-  --secondary: oklch(0.27 0.015 220);
-  --secondary-foreground: oklch(0.97 0.005 165);
-  --muted: oklch(0.27 0.015 220);
-  --muted-foreground: oklch(0.7 0.015 200);
-  --accent: oklch(0.3 0.04 165);
-  --accent-foreground: oklch(0.95 0.02 165);
-  --destructive: oklch(0.704 0.191 22.216);
+  --background: oklch(0.16 0.025 280);              /* deep violet-black */
+  --foreground: oklch(0.96 0.015 280);              /* soft off-white warm tint */
+  --card: oklch(0.21 0.03 280);                     /* slightly lighter, violet tint */
+  --card-foreground: oklch(0.96 0.015 280);
+  --popover: oklch(0.21 0.03 280);
+  --popover-foreground: oklch(0.96 0.015 280);
+  --primary: oklch(0.78 0.16 200);                  /* electric cyan */
+  --primary-foreground: oklch(0.15 0.03 280);
+  --secondary: oklch(0.27 0.03 280);
+  --secondary-foreground: oklch(0.96 0.015 280);
+  --muted: oklch(0.25 0.025 280);
+  --muted-foreground: oklch(0.70 0.025 280);
+  --accent: oklch(0.65 0.25 350);                   /* vibrant magenta */
+  --accent-foreground: oklch(0.97 0.01 350);
+  --destructive: oklch(0.65 0.25 16);
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.7 0.15 165);
-  --chart-1: oklch(0.65 0.15 165);
-  --chart-2: oklch(0.7 0.12 200);
-  --chart-3: oklch(0.78 0.15 80);
-  --chart-4: oklch(0.65 0.22 16);
-  --chart-5: oklch(0.72 0.14 230);
-  --sidebar: oklch(0.18 0.015 220);
-  --sidebar-foreground: oklch(0.97 0.005 165);
-  --sidebar-primary: oklch(0.7 0.15 165);
-  --sidebar-primary-foreground: oklch(0.15 0.02 220);
-  --sidebar-accent: oklch(0.27 0.02 165);
-  --sidebar-accent-foreground: oklch(0.95 0.02 165);
+  --ring: oklch(0.78 0.16 200);
+  /* aurora neon chart palette */
+  --chart-1: oklch(0.78 0.16 200);                  /* electric cyan */
+  --chart-2: oklch(0.70 0.25 350);                  /* vibrant magenta */
+  --chart-3: oklch(0.82 0.16 85);                   /* amber/gold */
+  --chart-4: oklch(0.80 0.18 130);                  /* lime */
+  --chart-5: oklch(0.65 0.20 290);                  /* violet */
+  --sidebar: oklch(0.18 0.03 280);
+  --sidebar-foreground: oklch(0.96 0.015 280);
+  --sidebar-primary: oklch(0.78 0.16 200);
+  --sidebar-primary-foreground: oklch(0.15 0.03 280);
+  --sidebar-accent: oklch(0.27 0.03 280);
+  --sidebar-accent-foreground: oklch(0.96 0.015 280);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.7 0.15 165);
+  --sidebar-ring: oklch(0.78 0.16 200);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html, body {
+    min-height: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    /* create a stacking context so the fixed aurora-bg (z-index:-1) paints
+       above the body bg but below in-flow content */
+    isolation: isolate;
+    position: relative;
   }
 }
 
-/* Custom scrollbar */
+/* ============================================================
+   ANIMATED AURORA BACKGROUND
+   Fixed, pointer-events:none, sits behind all content via z-index:-1.
+   Three drifting blobs (cyan / magenta / violet) + faint command-grid.
+   ============================================================ */
+.aurora-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.35;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.aurora-blob-1 {
+  width: 52vw;
+  height: 52vw;
+  top: -12vw;
+  left: -10vw;
+  background: radial-gradient(circle at center, var(--chart-1), transparent 62%);
+  animation: aurora-drift-1 26s ease-in-out infinite;
+}
+
+.aurora-blob-2 {
+  width: 46vw;
+  height: 46vw;
+  bottom: -14vw;
+  right: -8vw;
+  background: radial-gradient(circle at center, var(--chart-2), transparent 62%);
+  animation: aurora-drift-2 32s ease-in-out infinite;
+}
+
+.aurora-blob-3 {
+  width: 40vw;
+  height: 40vw;
+  top: 30vh;
+  left: 32vw;
+  background: radial-gradient(circle at center, var(--chart-5), transparent 62%);
+  animation: aurora-drift-3 30s ease-in-out infinite;
+  opacity: 0.28;
+}
+
+.aurora-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 40%, black 25%, transparent 78%);
+  mask-image: radial-gradient(ellipse at 50% 40%, black 25%, transparent 78%);
+  opacity: 0.5;
+}
+
+.aurora-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: radial-gradient(color-mix(in oklch, var(--foreground) 60%, transparent) 0.5px, transparent 0.5px);
+  background-size: 4px 4px;
+}
+
+@keyframes aurora-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1);    opacity: 0.32; }
+  50%      { transform: translate(9vw, 7vh) scale(1.15); opacity: 0.42; }
+}
+@keyframes aurora-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1);    opacity: 0.30; }
+  50%      { transform: translate(-10vw, -5vh) scale(1.20); opacity: 0.40; }
+}
+@keyframes aurora-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1);    opacity: 0.22; }
+  33%      { transform: translate(-7vw, 9vh) scale(1.10); opacity: 0.30; }
+  66%      { transform: translate(8vw, -6vh) scale(0.95); opacity: 0.32; }
+}
+
+/* ============================================================
+   SHOOTING STARS / METEORS — used inside dashboard hero only
+   ============================================================ */
+.meteor {
+  position: absolute;
+  width: 160px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0;
+  top: 8%;
+  left: -10%;
+  transform: rotate(-22deg);
+  filter: drop-shadow(0 0 6px var(--primary));
+  animation: meteor-sweep 9s ease-in 2s infinite;
+}
+.meteor.meteor-2 {
+  top: 38%;
+  left: 40%;
+  width: 120px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  filter: drop-shadow(0 0 6px var(--accent));
+  animation-delay: 6s;
+  animation-duration: 11s;
+}
+
+@keyframes meteor-sweep {
+  0%   { transform: translate(-30%, -30%) rotate(-22deg); opacity: 0; }
+  6%   { opacity: 1; }
+  45%  { opacity: 1; }
+  70%, 100% { transform: translate(140%, 70%) rotate(-22deg); opacity: 0; }
+}
+
+/* ============================================================
+   GLOW + GRADIENT UTILITIES
+   ============================================================ */
 @layer utilities {
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
@@ -141,9 +272,72 @@
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: var(--primary);
   }
+
   .glass {
-    background: color-mix(in oklch, var(--card) 80%, transparent);
-    backdrop-filter: blur(12px);
+    background: color-mix(in oklch, var(--card) 70%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 24px var(--primary), 0 0 4px var(--primary);
+  }
+  .glow-accent {
+    box-shadow: 0 0 24px var(--accent), 0 0 4px var(--accent);
+  }
+
+  /* Pulsing red glow for critical alert cards */
+  .glow-critical {
+    box-shadow:
+      0 0 0 1px oklch(0.65 0.25 16 / 0.40),
+      0 0 16px oklch(0.65 0.25 16 / 0.45);
+    animation: critical-pulse 2.4s ease-in-out infinite;
+  }
+
+  /* Cyan→magenta→violet gradient text */
+  .text-gradient {
+    background: linear-gradient(90deg, var(--primary), var(--accent) 60%, var(--chart-5));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Gradient border wrapper */
+  .border-gradient {
+    border: 1px solid transparent;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(135deg, var(--primary), var(--accent), var(--chart-5));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+
+  /* Soft continuous glow for hero badges */
+  .pulse-glow {
+    animation: pulse-glow 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes critical-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px oklch(0.65 0.25 16 / 0.35),
+      0 0 14px oklch(0.65 0.25 16 / 0.40);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px oklch(0.65 0.25 16 / 0.55),
+      0 0 28px oklch(0.65 0.25 16 / 0.65);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px color-mix(in oklch, var(--primary) 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 22px color-mix(in oklch, var(--primary) 60%, transparent);
   }
 }
 
@@ -154,4 +348,24 @@
 .word-cloud-item:hover {
   transform: scale(1.1);
   color: var(--primary);
+}
+
+/* ============================================================
+   REDUCED MOTION — disable all ambient animations
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .aurora-blob,
+  .aurora-grid,
+  .meteor,
+  .glow-critical,
+  .pulse-glow {
+    animation: none !important;
+  }
+  .aurora-blob { opacity: 0.18 !important; }
 }

@@ -11,6 +11,7 @@ import { NAV_GROUPS, type NavKey } from '@/lib/nav'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
+import { motion } from 'framer-motion'
 
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard, BarChart3, BellRing, Globe, Newspaper, Package,
@@ -79,7 +80,11 @@ export function Sidebar({
                       )}
                     >
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary" />
+                        <motion.span
+                          layoutId="sidebar-active-indicator"
+                          className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                        />
                       )}
                       <Icon className={cn('size-4 shrink-0', isActive && 'text-primary')} />
                       {!collapsed && <span className="flex-1 text-left truncate">{item.label}</span>}

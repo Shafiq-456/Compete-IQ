@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { PageHeader, EmptyState, timeAgo } from '@/components/shared/primitives'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, staggerContainerFast, scaleIn } from '@/lib/animations'
 
 const REPORT_TYPES = [
   { type: 'Daily', label: 'Daily Report', desc: 'Today\'s competitor activity summary', icon: Clock },
@@ -60,34 +62,38 @@ export function ReportsView() {
   const selected = reports.find((r) => r.id === selectedId)
 
   return (
-    <div>
-      <PageHeader
-        title="AI Report Generator"
-        description="Generate daily, weekly, monthly, and executive intelligence reports"
-        icon={FileText}
-        actions={
-          <div className="flex items-center gap-2">
-            <Select value={reportType} onValueChange={setReportType}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {REPORT_TYPES.map((t) => (
-                  <SelectItem key={t.type} value={t.type}>{t.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={() => generateMutation.mutate({ type: reportType })} disabled={generateMutation.isPending}>
-              <Sparkles className="size-4" />
-              {generateMutation.isPending ? 'Generating…' : 'Generate'}
-            </Button>
-          </div>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="AI Report Generator"
+          description="Generate daily, weekly, monthly, and executive intelligence reports"
+          icon={FileText}
+          actions={
+            <div className="flex items-center gap-2">
+              <Select value={reportType} onValueChange={setReportType}>
+                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {REPORT_TYPES.map((t) => (
+                    <SelectItem key={t.type} value={t.type}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button onClick={() => generateMutation.mutate({ type: reportType })} disabled={generateMutation.isPending}>
+                <Sparkles className="size-4" />
+                {generateMutation.isPending ? 'Generating…' : 'Generate'}
+              </Button>
+            </div>
+          }
+        />
+      </motion.div>
 
       {/* Report type cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      <motion.div variants={staggerContainerFast} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         {REPORT_TYPES.map((t) => (
-          <button
+          <motion.button
             key={t.type}
+            variants={scaleIn}
+            whileHover={{ y: -2, scale: 1.01 }}
             onClick={() => { setReportType(t.type); generateMutation.mutate({ type: t.type }) }}
             disabled={generateMutation.isPending}
             className="text-left rounded-xl border bg-card p-4 hover:border-primary/40 hover:shadow-md transition-all disabled:opacity-50"
@@ -95,11 +101,11 @@ export function ReportsView() {
             <t.icon className="size-5 text-primary mb-2" />
             <p className="text-sm font-semibold">{t.label}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">{t.desc}</p>
-          </button>
+          </motion.button>
         ))}
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Reports list */}
         <Card className="lg:col-span-1">
           <CardHeader className="pb-2">
@@ -172,8 +178,8 @@ export function ReportsView() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }
 

@@ -10,12 +10,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageHeader, SentimentBadge, timeAgo, formatNumber, EmptyState } from '@/components/shared/primitives'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, slideInRight } from '@/lib/animations'
 
 const PLATFORMS = ['LinkedIn', 'X', 'YouTube', 'Instagram', 'Facebook']
 const PLATFORM_ICONS: Record<string, any> = {
   LinkedIn: Linkedin, X: Twitter, YouTube: Youtube, Instagram: Instagram, Facebook: Facebook,
 }
-const COLORS = ['#10b981', '#06b6d4', '#f59e0b', '#ef4444', '#8b5cf6']
+const COLORS = ['#22d3ee', '#e879f9', '#fbbf24', '#fb7185', '#a78bfa']
 
 export function SocialView() {
   const [platform, setPlatform] = React.useState('all')
@@ -47,26 +49,28 @@ export function SocialView() {
   for (const p of posts) platformCounts[p.platform] = (platformCounts[p.platform] || 0) + 1
 
   return (
-    <div>
-      <PageHeader
-        title="Social Media Intelligence"
-        description="AI agent monitors posts, campaigns, announcements, and engagement across platforms"
-        icon={Share2}
-        actions={
-          <Select value={platform} onValueChange={setPlatform}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="All platforms" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All platforms</SelectItem>
-              {PLATFORMS.map((p) => (
-                <SelectItem key={p} value={p}>{p}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="Social Media Intelligence"
+          description="AI agent monitors posts, campaigns, announcements, and engagement across platforms"
+          icon={Share2}
+          actions={
+            <Select value={platform} onValueChange={setPlatform}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="All platforms" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All platforms</SelectItem>
+                {PLATFORMS.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+      </motion.div>
 
       {/* Platform tabs */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <motion.div variants={fadeUp} className="flex flex-wrap gap-2 mb-4">
         <button
           onClick={() => setPlatform('all')}
           className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${platform === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'bg-card hover:bg-muted'}`}
@@ -86,10 +90,11 @@ export function SocialView() {
             </button>
           )
         })}
-      </div>
+      </motion.div>
 
       {/* Engagement chart */}
-      <Card className="mb-4">
+      <motion.div variants={fadeUp} className="mb-4">
+      <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Engagement by Competitor</CardTitle>
           <CardDescription>Total likes, comments, and shares across monitored posts</CardDescription>
@@ -102,23 +107,30 @@ export function SocialView() {
               <YAxis tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
               <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }} formatter={(value: any) => formatNumber(value)} />
               <Legend wrapperStyle={{ fontSize: '11px' }} />
-              <Bar dataKey="likes" fill="#ef4444" name="Likes" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="comments" fill="#f59e0b" name="Comments" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="shares" fill="#10b981" name="Shares" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="likes" fill="#fb7185" name="Likes" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="comments" fill="#fbbf24" name="Comments" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="shares" fill="#a3e635" name="Shares" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* Posts feed */}
       {posts.length === 0 ? (
         <EmptyState icon={Share2} title="No social posts detected" description="The Social Agent is scanning LinkedIn, X, YouTube, Instagram, and Facebook." />
       ) : (
-        <div className="space-y-3">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          className="space-y-3"
+        >
           {posts.map((p) => {
             const Icon = PLATFORM_ICONS[p.platform] ?? Share2
             return (
-              <Card key={p.id} className="hover:border-primary/30 transition-colors">
+              <motion.div key={p.id} variants={slideInRight}>
+              <Card className="hover:border-primary/30 transition-colors">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="size-10 rounded-lg bg-muted flex items-center justify-center text-lg shrink-0">
@@ -137,20 +149,20 @@ export function SocialView() {
                       <p className="text-sm leading-relaxed mb-3">{p.content}</p>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
-                          <Heart className="size-3 text-red-500" />
+                          <Heart className="size-3 text-rose-500" />
                           {formatNumber(p.likes)}
                         </span>
                         <span className="inline-flex items-center gap-1">
-                          <MessageCircle className="size-3 text-amber-500" />
+                          <MessageCircle className="size-3 text-chart-3" />
                           {formatNumber(p.comments)}
                         </span>
                         <span className="inline-flex items-center gap-1">
-                          <Repeat2 className="size-3 text-emerald-500" />
+                          <Repeat2 className="size-3 text-chart-4" />
                           {formatNumber(p.shares)}
                         </span>
                         {p.views > 0 && (
                           <span className="inline-flex items-center gap-1">
-                            <Eye className="size-3 text-cyan-500" />
+                            <Eye className="size-3 text-chart-1" />
                             {formatNumber(p.views)}
                           </span>
                         )}
@@ -159,10 +171,11 @@ export function SocialView() {
                   </div>
                 </CardContent>
               </Card>
+              </motion.div>
             )
           })}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }

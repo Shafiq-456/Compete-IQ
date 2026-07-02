@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { PageHeader, SeverityBadge, timeAgo, EmptyState } from '@/components/shared/primitives'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, staggerContainerFast, slideInRight } from '@/lib/animations'
 
 const CHANGE_TYPE_LABEL: Record<string, string> = {
   NewPage: 'New Page',
@@ -40,37 +42,45 @@ export function WebsiteView() {
   const changes = data?.changes ?? []
 
   return (
-    <div>
-      <PageHeader
-        title="Website Monitoring"
-        description="AI agent detects page, content, UI, and CTA changes across competitor websites"
-        icon={Globe}
-        actions={
-          <Select value={competitorId} onValueChange={setCompetitorId}>
-            <SelectTrigger className="w-48"><SelectValue placeholder="All competitors" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All competitors</SelectItem>
-              {(compData?.competitors ?? []).map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="Website Monitoring"
+          description="AI agent detects page, content, UI, and CTA changes across competitor websites"
+          icon={Globe}
+          actions={
+            <Select value={competitorId} onValueChange={setCompetitorId}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="All competitors" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All competitors</SelectItem>
+                {(compData?.competitors ?? []).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+      </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <StatTile label="Total Changes" value={changes.length} color="text-emerald-500" />
-        <StatTile label="Critical" value={changes.filter((c) => c.severity === 'Critical').length} color="text-red-500" />
-        <StatTile label="High" value={changes.filter((c) => c.severity === 'High').length} color="text-orange-500" />
-        <StatTile label="New Pages" value={changes.filter((c) => c.changeType === 'NewPage').length} color="text-cyan-500" />
-      </div>
+      <motion.div variants={staggerContainerFast} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <StatTile label="Total Changes" value={changes.length} color="text-chart-1" />
+        <StatTile label="Critical" value={changes.filter((c) => c.severity === 'Critical').length} color="text-rose-500" />
+        <StatTile label="High" value={changes.filter((c) => c.severity === 'High').length} color="text-chart-3" />
+        <StatTile label="New Pages" value={changes.filter((c) => c.changeType === 'NewPage').length} color="text-chart-2" />
+      </motion.div>
 
       {changes.length === 0 ? (
         <EmptyState icon={Globe} title="No website changes detected yet" description="The Website Agent is scanning competitor pages — changes will appear here in real time." />
       ) : (
-        <div className="space-y-3">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          className="space-y-3"
+        >
           {changes.map((c) => (
-            <Card key={c.id} className="overflow-hidden hover:border-primary/30 transition-colors">
+            <motion.div key={c.id} variants={slideInRight}>
+            <Card className="overflow-hidden hover:border-primary/30 transition-colors">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="size-10 rounded-lg bg-muted flex items-center justify-center text-lg shrink-0">
@@ -96,8 +106,8 @@ export function WebsiteView() {
                           </div>
                         )}
                         {c.afterContent && (
-                          <div className="rounded-lg bg-emerald-500/10 p-2.5">
-                            <p className="text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">After</p>
+                          <div className="rounded-lg bg-chart-4/10 p-2.5">
+                            <p className="text-[10px] uppercase tracking-wider text-chart-4 mb-1">After</p>
                             <p className="text-xs line-clamp-2">{c.afterContent}</p>
                           </div>
                         )}
@@ -107,10 +117,11 @@ export function WebsiteView() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }
 

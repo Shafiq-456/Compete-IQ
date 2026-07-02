@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageHeader, SeverityBadge, timeAgo, EmptyState } from '@/components/shared/primitives'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, scaleIn } from '@/lib/animations'
 
 const SEVERITIES = ['Critical', 'High', 'Medium', 'Low']
 
@@ -49,33 +51,35 @@ export function AlertsView() {
   const resolved = alerts.filter((a) => a.isResolved).length
 
   return (
-    <div>
-      <PageHeader
-        title="Alerts"
-        description="Real-time notifications about important competitor events"
-        icon={BellRing}
-        actions={
-          <Select value={severity} onValueChange={setSeverity}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="All severities" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All severities</SelectItem>
-              {SEVERITIES.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="Alerts"
+          description="Real-time notifications about important competitor events"
+          icon={BellRing}
+          actions={
+            <Select value={severity} onValueChange={setSeverity}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="All severities" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All severities</SelectItem>
+                {SEVERITIES.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+      </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <Card><CardContent className="p-3"><p className="text-2xl font-bold text-emerald-500">{alerts.length}</p><p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">Total Alerts</p></CardContent></Card>
-        <Card><CardContent className="p-3"><p className="text-2xl font-bold text-amber-500">{unread}</p><p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">Unread</p></CardContent></Card>
-        <Card><CardContent className="p-3"><p className="text-2xl font-bold text-red-500">{alerts.filter((a) => a.severity === 'Critical' && !a.isResolved).length}</p><p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">Critical Open</p></CardContent></Card>
-        <Card><CardContent className="p-3"><p className="text-2xl font-bold text-cyan-500">{resolved}</p><p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">Resolved</p></CardContent></Card>
-      </div>
+      <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <Card><CardContent className="p-3"><p className="text-2xl font-bold text-chart-4">{alerts.length}</p><p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">Total Alerts</p></CardContent></Card>
+        <Card><CardContent className="p-3"><p className="text-2xl font-bold text-chart-3">{unread}</p><p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">Unread</p></CardContent></Card>
+        <Card><CardContent className="p-3"><p className="text-2xl font-bold text-rose-500">{alerts.filter((a) => a.severity === 'Critical' && !a.isResolved).length}</p><p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">Critical Open</p></CardContent></Card>
+        <Card><CardContent className="p-3"><p className="text-2xl font-bold text-chart-1">{resolved}</p><p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">Resolved</p></CardContent></Card>
+      </motion.div>
 
       {/* Severity filter chips */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <motion.div variants={fadeUp} className="flex flex-wrap gap-2 mb-4">
         <button
           onClick={() => setSeverity('all')}
           className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${severity === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'bg-card hover:bg-muted'}`}
@@ -94,15 +98,24 @@ export function AlertsView() {
             </button>
           )
         })}
-      </div>
+      </motion.div>
 
       {alerts.length === 0 ? (
         <EmptyState icon={BellRing} title="No alerts" description="You're all caught up. New competitor events will appear here." />
       ) : (
-        <div className="space-y-3">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          className="space-y-3"
+        >
           {alerts.map((a) => (
-            <Card
+            <motion.div
               key={a.id}
+              variants={a.severity === 'Critical' && !a.isResolved ? scaleIn : fadeUp}
+              className={`h-full ${a.severity === 'Critical' && !a.isResolved ? 'glow-critical rounded-xl' : ''}`}
+            >
+            <Card
               className={`overflow-hidden transition-all ${a.isResolved ? 'opacity-60' : ''} ${!a.isRead ? 'border-l-4 border-l-primary' : ''}`}
             >
               <CardContent className="p-4">
@@ -183,9 +196,10 @@ export function AlertsView() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }

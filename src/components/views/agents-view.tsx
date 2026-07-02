@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { PageHeader, StatusDot, timeAgo } from '@/components/shared/primitives'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, staggerContainerFast, scaleIn, hoverLift } from '@/lib/animations'
 
 const AGENT_ICONS: Record<string, LucideIcon> = {
   WebsiteAgent: Globe,
@@ -42,18 +44,20 @@ export function AgentsView() {
   const avgSuccess = agents.length ? agents.reduce((s, a) => s + a.successRate, 0) / agents.length : 0
 
   return (
-    <div>
-      <PageHeader
-        title="AI Agents"
-        description="Specialized autonomous agents that monitor, analyze, and report on competitors"
-        icon={Bot}
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="AI Agents"
+          description="Specialized autonomous agents that monitor, analyze, and report on competitors"
+          icon={Bot}
+        />
+      </motion.div>
 
       {/* Top stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <motion.div variants={staggerContainerFast} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <Bot className="size-5 text-emerald-500" />
+            <Bot className="size-5 text-chart-1" />
             <div>
               <p className="text-xl font-bold leading-none">{agents.length}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Total Agents</p>
@@ -62,7 +66,7 @@ export function AgentsView() {
         </Card>
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <Activity className="size-5 text-cyan-500" />
+            <Activity className="size-5 text-chart-2" />
             <div>
               <p className="text-xl font-bold leading-none">{active}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Active Now</p>
@@ -71,7 +75,7 @@ export function AgentsView() {
         </Card>
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <Zap className="size-5 text-amber-500" />
+            <Zap className="size-5 text-chart-3" />
             <div>
               <p className="text-xl font-bold leading-none">{totalProcessed.toLocaleString()}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Items Processed</p>
@@ -80,21 +84,27 @@ export function AgentsView() {
         </Card>
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <CheckCircle2 className="size-5 text-purple-500" />
+            <CheckCircle2 className="size-5 text-chart-5" />
             <div>
               <p className="text-xl font-bold leading-none">{avgSuccess.toFixed(1)}%</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Avg Success Rate</p>
             </div>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
       {/* Agent cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+      >
         {agents.map((a) => {
           const Icon = AGENT_ICONS[a.type] ?? Bot
           return (
-            <Card key={a.id} className="hover:border-primary/30 transition-colors">
+            <motion.div key={a.id} variants={scaleIn} whileHover={hoverLift} className="h-full">
+            <Card className="hover:border-primary/30 transition-colors h-full">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -125,7 +135,7 @@ export function AgentsView() {
                   <div>
                     <div className="flex items-center justify-between text-xs mb-1">
                       <span className="text-muted-foreground">Success rate</span>
-                      <span className={`font-mono font-medium ${a.successRate >= 99 ? 'text-emerald-600 dark:text-emerald-400' : a.successRate >= 95 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
+                      <span className={`font-mono font-medium ${a.successRate >= 99 ? 'text-chart-4' : a.successRate >= 95 ? 'text-chart-3' : 'text-rose-500'}`}>
                         {a.successRate.toFixed(1)}%
                       </span>
                     </div>
@@ -144,9 +154,10 @@ export function AgentsView() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           )
         })}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

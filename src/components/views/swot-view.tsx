@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageHeader, EmptyState } from '@/components/shared/primitives'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, scaleIn } from '@/lib/animations'
 
 export function SwotView() {
   const qc = useQueryClient()
@@ -56,33 +58,35 @@ export function SwotView() {
   const competitor = compData?.competitors?.find((c) => c.id === competitorId)
 
   return (
-    <div>
-      <PageHeader
-        title="SWOT Analysis Generator"
-        description="AI-powered Strengths, Weaknesses, Opportunities, Threats analysis"
-        icon={Grid3x3}
-        actions={
-          <div className="flex items-center gap-2">
-            <Select value={competitorId} onValueChange={setCompetitorId}>
-              <SelectTrigger className="w-48"><SelectValue placeholder="Select competitor" /></SelectTrigger>
-              <SelectContent>
-                {(compData?.competitors ?? []).map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => competitorId && regenerateMutation.mutate(competitorId)}
-              disabled={!competitorId || regenerateMutation.isPending}
-            >
-              <RefreshCw className={`size-4 ${regenerateMutation.isPending ? 'animate-spin' : ''}`} />
-              Regenerate
-            </Button>
-          </div>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="SWOT Analysis Generator"
+          description="AI-powered Strengths, Weaknesses, Opportunities, Threats analysis"
+          icon={Grid3x3}
+          actions={
+            <div className="flex items-center gap-2">
+              <Select value={competitorId} onValueChange={setCompetitorId}>
+                <SelectTrigger className="w-48"><SelectValue placeholder="Select competitor" /></SelectTrigger>
+                <SelectContent>
+                  {(compData?.competitors ?? []).map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => competitorId && regenerateMutation.mutate(competitorId)}
+                disabled={!competitorId || regenerateMutation.isPending}
+              >
+                <RefreshCw className={`size-4 ${regenerateMutation.isPending ? 'animate-spin' : ''}`} />
+                Regenerate
+              </Button>
+            </div>
+          }
+        />
+      </motion.div>
 
       {!competitorId ? (
         <EmptyState icon={Grid3x3} title="Select a competitor" description="Choose a competitor to view or generate their SWOT analysis." />
@@ -103,55 +107,62 @@ export function SwotView() {
       ) : (
         <div className="space-y-4">
           {/* Summary card */}
-          <Card className="bg-gradient-to-br from-primary/10 to-chart-2/10 border-primary/20">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className="size-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-                  <span className="text-lg">{competitor?.logo}</span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold">{competitor?.name} — Executive Summary</h3>
-                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{swot.summary}</p>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                    <Sparkles className="size-3" />
-                    Generated {new Date(swot.generatedAt).toLocaleString()}
-                    {data?.cached && <span className="text-emerald-500">· Cached</span>}
+          <motion.div variants={scaleIn}>
+            <Card className="bg-gradient-to-br from-primary/10 to-chart-5/10 border-primary/20">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="size-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                    <span className="text-lg">{competitor?.logo}</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-semibold">{competitor?.name} — Executive Summary</h3>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{swot.summary}</p>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                      <Sparkles className="size-3" />
+                      Generated {new Date(swot.generatedAt).toLocaleString()}
+                      {data?.cached && <span className="text-chart-4">· Cached</span>}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* SWOT grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SwotQuadrant
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            <motion.div variants={scaleIn} className="h-full"><SwotQuadrant
               title="Strengths"
               icon={Check}
               color="emerald"
               items={Array.isArray(swot.strengths) ? swot.strengths : []}
-            />
-            <SwotQuadrant
+            /></motion.div>
+            <motion.div variants={scaleIn} className="h-full"><SwotQuadrant
               title="Weaknesses"
               icon={AlertTriangle}
               color="red"
               items={Array.isArray(swot.weaknesses) ? swot.weaknesses : []}
-            />
-            <SwotQuadrant
+            /></motion.div>
+            <motion.div variants={scaleIn} className="h-full"><SwotQuadrant
               title="Opportunities"
               icon={TrendingUp}
               color="cyan"
               items={Array.isArray(swot.opportunities) ? swot.opportunities : []}
-            />
-            <SwotQuadrant
+            /></motion.div>
+            <motion.div variants={scaleIn} className="h-full"><SwotQuadrant
               title="Threats"
               icon={ShieldAlert}
               color="amber"
               items={Array.isArray(swot.threats) ? swot.threats : []}
-            />
-          </div>
+            /></motion.div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 

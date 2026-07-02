@@ -10,8 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageHeader, EmptyState } from '@/components/shared/primitives'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, staggerContainerFast } from '@/lib/animations'
 
-const COLORS = ['#10b981', '#06b6d4', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
+const COLORS = ['#22d3ee', '#e879f9', '#fbbf24', '#a3e635', '#a78bfa', '#38bdf8', '#fb7185', '#fb923c']
 
 export function PricingView() {
   const [competitorId, setCompetitorId] = React.useState('all')
@@ -43,32 +45,34 @@ export function PricingView() {
     }))
 
   return (
-    <div>
-      <PageHeader
-        title="Pricing Intelligence"
-        description="AI agent tracks subscription pricing, discounts, and plan changes"
-        icon={DollarSign}
-        actions={
-          <Select value={competitorId} onValueChange={setCompetitorId}>
-            <SelectTrigger className="w-48"><SelectValue placeholder="All competitors" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All competitors</SelectItem>
-              {(compData?.competitors ?? []).map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="Pricing Intelligence"
+          description="AI agent tracks subscription pricing, discounts, and plan changes"
+          icon={DollarSign}
+          actions={
+            <Select value={competitorId} onValueChange={setCompetitorId}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="All competitors" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All competitors</SelectItem>
+                {(compData?.competitors ?? []).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+      </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <StatTile icon={DollarSign} label="Plans Tracked" value={pricing.length} color="text-emerald-500" />
-        <StatTile icon={TrendingDown} label="Price Reductions" value={reductions.length} color="text-cyan-500" />
-        <StatTile icon={TrendingUp} label="Price Increases" value={increases.length} color="text-orange-500" />
-        <StatTile icon={DollarSign} label="Free Plans" value={pricing.filter((p) => p.price === 0).length} color="text-purple-500" />
-      </div>
+      <motion.div variants={staggerContainerFast} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <StatTile icon={DollarSign} label="Plans Tracked" value={pricing.length} color="text-chart-1" />
+        <StatTile icon={TrendingDown} label="Price Reductions" value={reductions.length} color="text-chart-4" />
+        <StatTile icon={TrendingUp} label="Price Increases" value={increases.length} color="text-rose-500" />
+        <StatTile icon={DollarSign} label="Free Plans" value={pricing.filter((p) => p.price === 0).length} color="text-chart-5" />
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Monthly Plan Pricing Comparison</CardTitle>
@@ -117,7 +121,7 @@ export function PricingView() {
                         <span className="line-through text-muted-foreground">${prev}</span>{' '}
                         <span className="font-semibold">${p.price}</span>
                       </p>
-                      <p className={`text-[10px] font-medium ${down ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                      <p className={`text-[10px] font-medium ${down ? 'text-chart-4' : 'text-rose-500'}`}>
                         {down ? '↓' : '↑'} {Math.abs(pct).toFixed(1)}%
                       </p>
                     </div>
@@ -127,9 +131,10 @@ export function PricingView() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
       {/* Full pricing table */}
+      <motion.div variants={fadeUp}>
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">All Pricing Plans</CardTitle>
@@ -171,7 +176,7 @@ export function PricingView() {
                         <td className="py-2 pr-3 text-right font-mono text-muted-foreground">{prev ? `$${prev}` : '—'}</td>
                         <td className="py-2 text-right">
                           {prev ? (
-                            <span className={`text-xs font-medium ${pct < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                            <span className={`text-xs font-medium ${pct < 0 ? 'text-chart-4' : 'text-rose-500'}`}>
                               {pct < 0 ? '↓' : '↑'} {Math.abs(pct).toFixed(1)}%
                             </span>
                           ) : (
@@ -187,7 +192,8 @@ export function PricingView() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }
 

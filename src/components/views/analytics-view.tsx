@@ -9,8 +9,10 @@ import {
 import { BarChart3, TrendingUp, PieChart as PieIcon, Activity, Type } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/primitives'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, staggerContainerFast } from '@/lib/animations'
 
-const COLORS = ['#10b981', '#06b6d4', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
+const COLORS = ['#22d3ee', '#e879f9', '#fbbf24', '#a3e635', '#a78bfa', '#38bdf8', '#fb7185', '#fb923c']
 
 export function AnalyticsView() {
   const { data, isLoading } = useQuery<any>({
@@ -35,29 +37,32 @@ export function AnalyticsView() {
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Analytics Dashboard"
-        description="Cross-competitor charts, trends, and market insights"
-        icon={BarChart3}
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="Analytics Dashboard"
+          description="Cross-competitor charts, trends, and market insights"
+          icon={BarChart3}
+        />
+      </motion.div>
 
       {/* Top stat strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
-        <StatTile label="Competitors" value={data.totals.competitors} color="text-emerald-500" />
-        <StatTile label="News" value={data.totals.news} color="text-cyan-500" />
-        <StatTile label="Changes" value={data.totals.changes} color="text-amber-500" />
-        <StatTile label="Jobs" value={data.totals.jobs} color="text-purple-500" />
-        <StatTile label="Social" value={data.totals.social} color="text-pink-500" />
-        <StatTile label="Reviews" value={data.totals.reviews} color="text-orange-500" />
-        <StatTile label="Alerts" value={data.totals.alerts} color="text-red-500" />
-      </div>
+      <motion.div variants={staggerContainerFast} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
+        <StatTile label="Competitors" value={data.totals.competitors} color="text-chart-1" />
+        <StatTile label="News" value={data.totals.news} color="text-chart-2" />
+        <StatTile label="Changes" value={data.totals.changes} color="text-chart-3" />
+        <StatTile label="Jobs" value={data.totals.jobs} color="text-chart-5" />
+        <StatTile label="Social" value={data.totals.social} color="text-chart-2" />
+        <StatTile label="Reviews" value={data.totals.reviews} color="text-chart-4" />
+        <StatTile label="Alerts" value={data.totals.alerts} color="text-rose-500" />
+      </motion.div>
 
       {/* Activity timeline */}
-      <Card className="mb-4">
+      <motion.div variants={fadeUp} className="mb-4">
+      <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Activity className="size-4 text-emerald-500" />
+            <Activity className="size-4 text-chart-1" />
             14-Day Activity Timeline
           </CardTitle>
           <CardDescription>Daily count of changes, news, and alerts</CardDescription>
@@ -67,16 +72,16 @@ export function AnalyticsView() {
             <AreaChart data={data.timeline} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="a1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.45} />
+                  <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="a2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#e879f9" stopOpacity={0.45} />
+                  <stop offset="95%" stopColor="#e879f9" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="a3" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.45} />
+                  <stop offset="95%" stopColor="#fbbf24" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
@@ -84,20 +89,21 @@ export function AnalyticsView() {
               <YAxis tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" allowDecimals={false} />
               <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }} />
               <Legend wrapperStyle={{ fontSize: '11px' }} />
-              <Area type="monotone" dataKey="changes" stroke="#10b981" fill="url(#a1)" name="Changes" />
-              <Area type="monotone" dataKey="news" stroke="#06b6d4" fill="url(#a2)" name="News" />
-              <Area type="monotone" dataKey="alerts" stroke="#f59e0b" fill="url(#a3)" name="Alerts" />
+              <Area type="monotone" dataKey="changes" stroke="#22d3ee" fill="url(#a1)" name="Changes" />
+              <Area type="monotone" dataKey="news" stroke="#e879f9" fill="url(#a2)" name="News" />
+              <Area type="monotone" dataKey="alerts" stroke="#fbbf24" fill="url(#a3)" name="Alerts" />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* Grid: news by category, sentiment, alerts by severity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <PieIcon className="size-4 text-cyan-500" />
+              <PieIcon className="size-4 text-chart-1" />
               News by Category
             </CardTitle>
             <CardDescription>Distribution of news topics</CardDescription>
@@ -124,7 +130,7 @@ export function AnalyticsView() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="size-4 text-emerald-500" />
+              <TrendingUp className="size-4 text-chart-4" />
               Review Sentiment
             </CardTitle>
             <CardDescription>Customer voice distribution</CardDescription>
@@ -137,7 +143,7 @@ export function AnalyticsView() {
                   dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}
                 >
                   {Object.entries(data.sentimentCounts).map(([name], i) => (
-                    <Cell key={i} fill={name === 'Positive' ? '#10b981' : name === 'Negative' ? '#ef4444' : '#94a3b8'} />
+                    <Cell key={i} fill={name === 'Positive' ? '#a3e635' : name === 'Negative' ? '#fb7185' : '#94a3b8'} />
                   ))}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }} />
@@ -150,7 +156,7 @@ export function AnalyticsView() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <BarChart3 className="size-4 text-amber-500" />
+              <BarChart3 className="size-4 text-chart-3" />
               Alerts by Severity
             </CardTitle>
             <CardDescription>Critical / High / Medium / Low</CardDescription>
@@ -167,7 +173,7 @@ export function AnalyticsView() {
                 <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                   {Object.entries(data.alertsBySeverity).map(([name], i) => (
-                    <Cell key={i} fill={name === 'Critical' ? '#ef4444' : name === 'High' ? '#f97316' : name === 'Medium' ? '#f59e0b' : '#10b981'} />
+                    <Cell key={i} fill={name === 'Critical' ? '#fb7185' : name === 'High' ? '#fb923c' : name === 'Medium' ? '#fbbf24' : '#a3e635'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -212,7 +218,7 @@ export function AnalyticsView() {
                 <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }} />
                 <Bar dataKey="avg" radius={[0, 4, 4, 0]}>
                   {data.ratingByCompetitor.map((entry: any, i: number) => (
-                    <Cell key={i} fill={entry.avg >= 4.5 ? '#10b981' : entry.avg >= 4 ? '#06b6d4' : entry.avg >= 3 ? '#f59e0b' : '#ef4444'} />
+                    <Cell key={i} fill={entry.avg >= 4.5 ? '#a3e635' : entry.avg >= 4 ? '#22d3ee' : entry.avg >= 3 ? '#fbbf24' : '#fb7185'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -254,7 +260,7 @@ export function AnalyticsView() {
                 <PolarGrid stroke="var(--border)" />
                 <PolarAngleAxis dataKey="department" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
                 <PolarRadiusAxis tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
-                <Radar dataKey="count" stroke="#10b981" fill="#10b981" fillOpacity={0.4} />
+                <Radar dataKey="count" stroke="#22d3ee" fill="#22d3ee" fillOpacity={0.4} />
                 <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }} />
               </RadarChart>
             </ResponsiveContainer>
@@ -266,7 +272,7 @@ export function AnalyticsView() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Type className="size-4 text-purple-500" />
+            <Type className="size-4 text-chart-5" />
             Customer Voice Word Cloud
           </CardTitle>
           <CardDescription>Most common terms in customer reviews</CardDescription>
@@ -296,7 +302,7 @@ export function AnalyticsView() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   )
 }
 

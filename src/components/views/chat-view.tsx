@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { PageHeader } from '@/components/shared/primitives'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
+import { slideInRight, slideInLeft, fadeUp, glowPulse } from '@/lib/animations'
 
 const SUGGESTED_PROMPTS = [
   'Which competitor changed pricing this week?',
@@ -79,11 +81,13 @@ export function ChatView() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <PageHeader
-        title="AI Chat Assistant"
-        description="Ask business questions in natural language — powered by your live competitor data"
-        icon={MessageSquare}
-      />
+      <motion.div variants={fadeUp} initial="hidden" animate="show">
+        <PageHeader
+          title="AI Chat Assistant"
+          description="Ask business questions in natural language — powered by your live competitor data"
+          icon={MessageSquare}
+        />
+      </motion.div>
 
       <Card className="flex-1 flex flex-col min-h-0">
         <CardHeader className="pb-2 border-b">
@@ -107,9 +111,14 @@ export function ChatView() {
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-4">
           {history.length === 0 && !mutation.isPending && (
             <div className="text-center py-8">
-              <div className="size-14 rounded-2xl bg-gradient-to-br from-primary/20 to-chart-2/20 flex items-center justify-center mx-auto mb-3">
+              <motion.div
+                variants={glowPulse}
+                initial="hidden"
+                animate="show"
+                className="size-14 rounded-2xl bg-gradient-to-br from-primary/20 to-chart-2/20 flex items-center justify-center mx-auto mb-3"
+              >
                 <Sparkles className="size-7 text-primary" />
-              </div>
+              </motion.div>
               <p className="text-sm font-medium mb-1">Ask me anything about your competitors</p>
               <p className="text-xs text-muted-foreground mb-4">I have access to your live monitoring data — news, pricing, products, hiring, reviews, and more.</p>
             </div>
@@ -182,7 +191,12 @@ export function ChatView() {
 function MessageBubble({ role, content }: { role: string; content: string }) {
   const isUser = role === 'user'
   return (
-    <div className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
+    <motion.div
+      variants={isUser ? slideInRight : slideInLeft}
+      initial="hidden"
+      animate="show"
+      className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`}
+    >
       <div className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${isUser ? 'bg-muted' : 'bg-primary/10'}`}>
         {isUser ? <User className="size-4 text-muted-foreground" /> : <Bot className="size-4 text-primary" />}
       </div>
@@ -209,6 +223,6 @@ function MessageBubble({ role, content }: { role: string; content: string }) {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

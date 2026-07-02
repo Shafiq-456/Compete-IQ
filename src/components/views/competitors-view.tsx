@@ -26,6 +26,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { PageHeader, SeverityBadge, StatusDot } from '@/components/shared/primitives'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
+import { staggerContainer, slideInRight, fadeUp, hoverLift } from '@/lib/animations'
 
 type Competitor = {
   id: string; name: string; industry: string; website: string; country: string;
@@ -111,21 +113,23 @@ export function CompetitorsView() {
   })
 
   return (
-    <div>
-      <PageHeader
-        title="Competitor Management"
-        description="Add, edit, pause, or remove tracked competitors"
-        icon={Building2}
-        actions={
-          <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>
-            <Plus className="size-4" />
-            Add Competitor
-          </Button>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="Competitor Management"
+          description="Add, edit, pause, or remove tracked competitors"
+          icon={Building2}
+          actions={
+            <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>
+              <Plus className="size-4" />
+              Add Competitor
+            </Button>
+          }
+        />
+      </motion.div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-2 mb-4">
+      <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
@@ -145,12 +149,18 @@ export function CompetitorsView() {
             <SelectItem value="Paused">Paused</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </motion.div>
 
       {/* Cards grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"
+      >
         {filtered.map((c) => (
-          <Card key={c.id} className="group hover:shadow-md hover:border-primary/30 transition-all">
+          <motion.div key={c.id} variants={slideInRight} whileHover={hoverLift} className="h-full">
+          <Card className="group hover:shadow-md hover:border-primary/30 transition-all h-full">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <Avatar className="size-11 rounded-xl bg-gradient-to-br from-primary/20 to-chart-2/20 text-lg">
@@ -218,8 +228,9 @@ export function CompetitorsView() {
               </div>
             </CardContent>
           </Card>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {filtered.length === 0 && !isLoading && (
         <div className="text-center py-12 text-sm text-muted-foreground">
@@ -261,7 +272,7 @@ export function CompetitorsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </motion.div>
   )
 }
 

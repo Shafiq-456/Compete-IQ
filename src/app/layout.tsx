@@ -50,6 +50,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        {/* Animated aurora background — fixed, behind all content (z-index:-1) */}
+        <div className="aurora-bg" aria-hidden>
+          <div className="aurora-blob aurora-blob-1" />
+          <div className="aurora-blob aurora-blob-2" />
+          <div className="aurora-blob aurora-blob-3" />
+          <div className="aurora-grid" />
+          <div className="aurora-noise" />
+        </div>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

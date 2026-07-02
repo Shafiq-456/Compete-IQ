@@ -11,9 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageHeader, SentimentBadge, timeAgo, EmptyState } from '@/components/shared/primitives'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, slideInRight } from '@/lib/animations'
 
 const SOURCES = ['G2', 'Capterra', 'Product Hunt', 'Trustpilot', 'Google Reviews']
-const COLORS = ['#10b981', '#06b6d4', '#f59e0b', '#ef4444', '#8b5cf6']
+const COLORS = ['#22d3ee', '#e879f9', '#fbbf24', '#fb7185', '#a78bfa']
 
 export function ReviewsView() {
   const [source, setSource] = React.useState('all')
@@ -47,29 +49,31 @@ export function ReviewsView() {
   }))
 
   return (
-    <div>
-      <PageHeader
-        title="Customer Review Intelligence"
-        description="AI agent analyzes reviews across G2, Capterra, Product Hunt, Trustpilot & Google"
-        icon={Star}
-        actions={
-          <Select value={source} onValueChange={setSource}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="All sources" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All sources</SelectItem>
-              {SOURCES.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="Customer Review Intelligence"
+          description="AI agent analyzes reviews across G2, Capterra, Product Hunt, Trustpilot & Google"
+          icon={Star}
+          actions={
+            <Select value={source} onValueChange={setSource}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="All sources" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All sources</SelectItem>
+                {SOURCES.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+      </motion.div>
 
       {/* Stat tiles */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <Star className="size-5 text-amber-500" />
+            <Star className="size-5 text-chart-3" />
             <div>
               <p className="text-xl font-bold leading-none">{avgRating.toFixed(2)}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Avg Rating</p>
@@ -78,7 +82,7 @@ export function ReviewsView() {
         </Card>
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <ThumbsUp className="size-5 text-emerald-500" />
+            <ThumbsUp className="size-5 text-chart-4" />
             <div>
               <p className="text-xl font-bold leading-none">{reviews.filter((r) => r.sentiment === 'Positive').length}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Positive</p>
@@ -87,7 +91,7 @@ export function ReviewsView() {
         </Card>
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <ThumbsDown className="size-5 text-red-500" />
+            <ThumbsDown className="size-5 text-rose-500" />
             <div>
               <p className="text-xl font-bold leading-none">{reviews.filter((r) => r.sentiment === 'Negative').length}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Negative</p>
@@ -96,17 +100,17 @@ export function ReviewsView() {
         </Card>
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <MessageSquareWarning className="size-5 text-orange-500" />
+            <MessageSquareWarning className="size-5 text-chart-2" />
             <div>
               <p className="text-xl font-bold leading-none">{reviews.filter((r) => r.category === 'Complaint').length}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Complaints</p>
             </div>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Sentiment Distribution</CardTitle>
@@ -120,7 +124,7 @@ export function ReviewsView() {
                 <PieChart>
                   <Pie data={sentimentPie} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
                     {sentimentPie.map((entry, i) => (
-                      <Cell key={i} fill={entry.name === 'Positive' ? '#10b981' : entry.name === 'Negative' ? '#ef4444' : '#94a3b8'} />
+                      <Cell key={i} fill={entry.name === 'Positive' ? '#a3e635' : entry.name === 'Negative' ? '#fb7185' : '#94a3b8'} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }} />
@@ -150,15 +154,21 @@ export function ReviewsView() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
       {/* Reviews list */}
       {reviews.length === 0 ? (
         <EmptyState icon={Star} title="No reviews detected" description="The Review Agent is scanning G2, Capterra, Product Hunt, Trustpilot, and Google Reviews." />
       ) : (
-        <div className="space-y-3">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          className="space-y-3"
+        >
           {reviews.map((r) => (
-            <Card key={r.id} className="hover:border-primary/30 transition-colors">
+            <motion.div key={r.id} variants={slideInRight}>
+            <Card className="hover:border-primary/30 transition-colors">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="size-10 rounded-lg bg-muted flex items-center justify-center text-lg shrink-0">
@@ -187,9 +197,10 @@ export function ReviewsView() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }

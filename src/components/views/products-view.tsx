@@ -7,6 +7,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageHeader, StatusDot, EmptyState } from '@/components/shared/primitives'
+import { motion } from 'framer-motion'
+import { staggerContainer, fadeUp, staggerContainerFast, slideInRight, hoverLift } from '@/lib/animations'
 
 export function ProductsView() {
   const [competitorId, setCompetitorId] = React.useState('all')
@@ -26,40 +28,48 @@ export function ProductsView() {
   const products = data?.products ?? []
 
   return (
-    <div>
-      <PageHeader
-        title="Product Intelligence"
-        description="AI agent tracks products, features, integrations, and version history"
-        icon={Package}
-        actions={
-          <Select value={competitorId} onValueChange={setCompetitorId}>
-            <SelectTrigger className="w-48"><SelectValue placeholder="All competitors" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All competitors</SelectItem>
-              {(compData?.competitors ?? []).map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      />
+    <motion.div variants={staggerContainer} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
+        <PageHeader
+          title="Product Intelligence"
+          description="AI agent tracks products, features, integrations, and version history"
+          icon={Package}
+          actions={
+            <Select value={competitorId} onValueChange={setCompetitorId}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="All competitors" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All competitors</SelectItem>
+                {(compData?.competitors ?? []).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+      </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <StatTile icon={Boxes} label="Total Products" value={products.length} color="text-emerald-500" />
-        <StatTile icon={CheckCircle2} label="Active" value={products.filter((p) => p.status === 'Active').length} color="text-cyan-500" />
-        <StatTile icon={Layers} label="Beta" value={products.filter((p) => p.status === 'Beta').length} color="text-amber-500" />
-        <StatTile icon={Package} label="Categories" value={new Set(products.map((p) => p.category)).size} color="text-purple-500" />
-      </div>
+      <motion.div variants={staggerContainerFast} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <StatTile icon={Boxes} label="Total Products" value={products.length} color="text-chart-1" />
+        <StatTile icon={CheckCircle2} label="Active" value={products.filter((p) => p.status === 'Active').length} color="text-chart-2" />
+        <StatTile icon={Layers} label="Beta" value={products.filter((p) => p.status === 'Beta').length} color="text-chart-3" />
+        <StatTile icon={Package} label="Categories" value={new Set(products.map((p) => p.category)).size} color="text-chart-5" />
+      </motion.div>
 
       {products.length === 0 ? (
         <EmptyState icon={Package} title="No products tracked yet" />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"
+        >
           {products.map((p) => {
             const features: string[] = p.features ? JSON.parse(p.features) : []
             const integrations: string[] = p.integrations ? JSON.parse(p.integrations) : []
             return (
-              <Card key={p.id} className="hover:border-primary/30 transition-colors">
+              <motion.div key={p.id} variants={slideInRight} whileHover={hoverLift} className="h-full">
+              <Card className="hover:border-primary/30 transition-colors h-full">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2 min-w-0">
@@ -115,11 +125,12 @@ export function ProductsView() {
                   )}
                 </CardContent>
               </Card>
+              </motion.div>
             )
           })}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }
 
