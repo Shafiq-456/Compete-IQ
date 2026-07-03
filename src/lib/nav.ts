@@ -14,6 +14,7 @@ export type NavKey =
   | 'analytics'
   | 'alerts'
   | 'agents'
+  | 'digest'
 
 export const NAV_GROUPS: {
   label: string
@@ -23,6 +24,7 @@ export const NAV_GROUPS: {
     label: 'Overview',
     items: [
       { key: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', description: 'KPIs, recent activity, AI insights' },
+      { key: 'digest', label: 'Weekly Digest', icon: 'Inbox', description: 'Top changes across competitors this week' },
       { key: 'analytics', label: 'Analytics', icon: 'BarChart3', description: 'Cross-competitor charts & trends' },
       { key: 'alerts', label: 'Alerts', icon: 'BellRing', description: 'Critical events & notifications' },
     ],

@@ -57,10 +57,11 @@ Return STRICT JSON with this exact shape:
   "weaknesses": ["...", "...", "..."],
   "opportunities": ["...", "...", "..."],
   "threats": ["...", "...", "..."],
-  "summary": "A 2-3 sentence executive summary."
+  "summary": "A 2-3 sentence executive summary.",
+  "howToRespond": ["2-3 short, specific, actionable recommendations for how the user's business should react to this competitor's current activity. Each should be a concrete talking point or sales/playbook move, e.g. 'Emphasize your faster onboarding time in sales conversations, since [Competitor]'s recent reviews mention a slow setup process'."]
 }
 
-Each array should contain 3-5 concise, specific points grounded in real observations. Do not wrap the JSON in markdown fences.`
+Each array should contain 3-5 concise, specific points grounded in real observations. The howToRespond array must contain 2-3 specific, actionable recommendations referencing actual observations from the data. Do not wrap the JSON in markdown fences.`
 
     const response = await zai.chat.completions.create({
       messages: [
@@ -81,6 +82,7 @@ Each array should contain 3-5 concise, specific points grounded in real observat
       opportunities: ['Growing market demand'],
       threats: ['New entrants and pricing pressure'],
       summary: `SWOT generation fallback (AI unavailable: ${err?.message ?? 'error'}).`,
+      howToRespond: ['Monitor this competitor closely for pricing or product changes and prepare a differentiation talking point.'],
     }
   }
 }
@@ -202,5 +204,62 @@ export async function generateWeeklyInsight(snapshot: string) {
     return response.choices?.[0]?.message?.content ?? ''
   } catch {
     return 'Weekly insight unavailable.'
+  }
+}
+
+// ============================================================
+// Stage B: AI personalized onboarding message — first-time chat greeting
+// Generated (not hardcoded) from the user's niche + competitors + actual scan results
+// ============================================================
+export async function generateOnboardingWelcome(opts: {
+  niche: string
+  businessName?: string | null
+  competitorNames: string[]
+  scanTotals?: Record<string, number>
+}): Promise<string> {
+  try {
+    const zai = await getZAI()
+    const prompt = `Generate a friendly, personalized welcome message for a user who just finished onboarding on CompetitorIQ.
+
+USER CONTEXT:
+- Industry (niche): ${opts.niche}
+- Business name: ${opts.businessName || 'N/A'}
+- Tracked competitors: ${opts.competitorNames.length > 0 ? opts.competitorNames.join(', ') : 'none specified yet'}
+
+INITIAL SCAN RESULTS:
+${opts.scanTotals ? Object.entries(opts.scanTotals).map(([k, v]) => `- ${k}: ${v}`).join('\n') : 'No scan data yet'}
+
+The message MUST follow this exact structure:
+1. A one-line welcome that references their specific niche (e.g. "Welcome! I see you're in FinTech — here's how I can help you stay ahead.")
+2. 3-4 short bullet points on what the platform does for them specifically in their niche (e.g. "I'll track pricing changes," "I'll flag new competitor product launches," etc.) — make each bullet specific to their industry, not generic
+3. A clear next action — if scan results are non-zero, reference what was actually found (e.g. "I found ${opts.scanTotals?.pricingChanges || 0} recent pricing changes and ${opts.scanTotals?.products || 0} new product launches among your competitors"). If scan is zero, suggest "Try asking: 'What should I watch out for this month?'"
+
+Format as Markdown. Keep it under 200 words. Be warm and specific — not generic boilerplate.`
+
+    const response = await zai.chat.completions.create({
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a friendly product onboarding assistant. Always respond in Markdown.',
+        },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.6,
+      max_tokens: 500,
+    })
+    return response.choices?.[0]?.message?.content ?? ''
+  } catch {
+    // Fallback if AI is unavailable — still reference real scan data
+    const p = opts.scanTotals?.pricingChanges || 0
+    const pr = opts.scanTotals?.products || 0
+    const n = opts.scanTotals?.newsArticles || 0
+    return `Welcome to CompetitorIQ! I see you're in **${opts.niche}** — here's how I can help you stay ahead.
+
+- I'll track pricing changes across your competitors in real time
+- I'll flag new product launches and feature updates
+- I'll monitor news, hiring signals, and customer reviews
+- I'll generate SWOT analyses and strategic recommendations on demand
+
+**Your first scan is complete.** I found ${p} pricing changes, ${pr} product launches, and ${n} news articles among your competitors. Ask me anything to dive deeper.`
   }
 }

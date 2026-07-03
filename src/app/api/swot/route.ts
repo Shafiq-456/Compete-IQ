@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { generateSWOT } from '@/lib/ai'
+import { getCurrentUser } from '@/lib/auth'
 
-function buildCompetitorSnapshot(name: string, data: any) {
+function buildCompetitorSnapshot(name: string, data: any, niche?: string) {
   const lines: string[] = [`COMPETITOR: ${name}`]
+  if (niche) lines.push(`USER INDUSTRY CONTEXT: ${niche} (analyze how this competitor threatens / relates to a ${niche} business)`)
   if (data.products?.length) lines.push(`Products: ${data.products.map((p: any) => p.name).join(', ')}`)
   if (data.news?.length) lines.push(`Recent news: ${data.news.slice(0, 5).map((n: any) => `- ${n.title} (${n.category}, ${n.sentiment})`).join('; ')}`)
   if (data.websiteChanges?.length) lines.push(`Website changes: ${data.websiteChanges.slice(0, 5).map((c: any) => `- ${c.changeType} on ${c.pageType}: ${c.summary}`).join('; ')}`)
@@ -23,11 +25,19 @@ function buildCompetitorSnapshot(name: string, data: any) {
 }
 
 export async function GET(req: NextRequest) {
+  const user = await getCurrentUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const competitorId = req.nextUrl.searchParams.get('competitorId')
   const force = req.nextUrl.searchParams.get('force') === 'true'
 
   if (!competitorId) {
     return NextResponse.json({ error: 'competitorId required' }, { status: 400 })
+  }
+
+  // Verify ownership
+  const competitor = await db.competitor.findUnique({ where: { id: competitorId } })
+  if (!competitor || competitor.userId !== user.id) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
   // Check cache first
@@ -44,15 +54,12 @@ export async function GET(req: NextRequest) {
           weaknesses: JSON.parse(cached.weaknesses),
           opportunities: JSON.parse(cached.opportunities),
           threats: JSON.parse(cached.threats),
+          howToRespond: cached.howToRespond ? JSON.parse(cached.howToRespond) : [],
         },
         cached: true,
       })
     }
   }
-
-  // Gather data
-  const competitor = await db.competitor.findUnique({ where: { id: competitorId } })
-  if (!competitor) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const [products, news, websiteChanges, reviews, pricing, jobs, social] = await Promise.all([
     db.product.findMany({ where: { competitorId } }),
@@ -64,7 +71,7 @@ export async function GET(req: NextRequest) {
     db.socialPost.findMany({ where: { competitorId }, orderBy: { publishedAt: 'desc' }, take: 10 }),
   ])
 
-  const snapshot = buildCompetitorSnapshot(competitor.name, { products, news, websiteChanges, reviews, pricing, jobs, social })
+  const snapshot = buildCompetitorSnapshot(competitor.name, { products, news, websiteChanges, reviews, pricing, jobs, social }, user.businessNiche || undefined)
   const generated = await generateSWOT(competitor.name, snapshot)
 
   // Save
@@ -76,6 +83,7 @@ export async function GET(req: NextRequest) {
       opportunities: JSON.stringify(generated.opportunities || []),
       threats: JSON.stringify(generated.threats || []),
       summary: generated.summary || '',
+      howToRespond: JSON.stringify(generated.howToRespond || []),
     },
   })
 
@@ -86,6 +94,7 @@ export async function GET(req: NextRequest) {
       weaknesses: generated.weaknesses || [],
       opportunities: generated.opportunities || [],
       threats: generated.threats || [],
+      howToRespond: generated.howToRespond || [],
     },
     cached: false,
   })

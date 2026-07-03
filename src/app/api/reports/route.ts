@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { generateReport } from '@/lib/ai'
+import { getCurrentUser } from '@/lib/auth'
 
-function buildSnapshot(data: any) {
+function buildSnapshot(data: any, niche?: string) {
   const lines: string[] = []
+  if (niche) lines.push(`USER INDUSTRY: ${niche}`)
   lines.push(`Total competitors monitored: ${data.competitors.length}`)
   for (const c of data.competitors.slice(0, 8)) {
     lines.push(`\n## ${c.name} (${c.industry}, ${c.country})`)
@@ -24,22 +26,30 @@ function buildSnapshot(data: any) {
 }
 
 export async function GET() {
-  const reports = await db.report.findMany({ orderBy: { generatedAt: 'desc' }, take: 20 })
+  const user = await getCurrentUser()
+  if (!user) return NextResponse.json({ reports: [] })
+  const reports = await db.report.findMany({
+    where: { userId: user.id },
+    orderBy: { generatedAt: 'desc' },
+    take: 20,
+  })
   return NextResponse.json({ reports })
 }
 
 export async function POST(req: NextRequest) {
+  const user = await getCurrentUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const { reportType, period } = await req.json()
     const [competitors, news, changes, pricing, jobs] = await Promise.all([
-      db.competitor.findMany(),
-      db.newsArticle.findMany({ orderBy: { publishedAt: 'desc' }, take: 30, include: { competitor: true } }),
-      db.websiteChange.findMany({ orderBy: { detectedAt: 'desc' }, take: 30, include: { competitor: true } }),
-      db.pricingHistory.findMany({ where: { previousPrice: { not: null } }, include: { competitor: true } }),
-      db.jobPosting.findMany({ include: { competitor: true } }),
+      db.competitor.findMany({ where: { userId: user.id } }),
+      db.newsArticle.findMany({ where: { competitor: { userId: user.id } }, orderBy: { publishedAt: 'desc' }, take: 30, include: { competitor: true } }),
+      db.websiteChange.findMany({ where: { competitor: { userId: user.id } }, orderBy: { detectedAt: 'desc' }, take: 30, include: { competitor: true } }),
+      db.pricingHistory.findMany({ where: { competitor: { userId: user.id }, previousPrice: { not: null } }, include: { competitor: true } }),
+      db.jobPosting.findMany({ where: { competitor: { userId: user.id } }, include: { competitor: true } }),
     ])
 
-    const snapshot = buildSnapshot({ competitors, news, changes, pricing, jobs })
+    const snapshot = buildSnapshot({ competitors, news, changes, pricing, jobs }, user.businessNiche || undefined)
     const content = await generateReport({
       reportType: reportType || 'Weekly',
       period: period || new Date().toLocaleDateString(),
@@ -48,6 +58,7 @@ export async function POST(req: NextRequest) {
 
     const report = await db.report.create({
       data: {
+        user: { connect: { id: user.id } },
         title: `${reportType || 'Weekly'} Competitor Intelligence Report — ${period || new Date().toLocaleDateString()}`,
         reportType: reportType || 'Weekly',
         period: period || new Date().toLocaleDateString(),

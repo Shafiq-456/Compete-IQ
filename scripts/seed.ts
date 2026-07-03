@@ -163,7 +163,7 @@ async function seed() {
   await db.competitor.deleteMany()
   await db.user.deleteMany()
 
-  // User
+  // Demo user (pre-onboarded so the app shows real data out of the box)
   await db.user.create({
     data: {
       id: 'user_default',
@@ -172,12 +172,17 @@ async function seed() {
       role: 'Admin',
       company: 'CompetitorIQ',
       avatar: 'JA',
+      businessNiche: 'SaaS',
+      businessName: 'CompetitorIQ',
+      hasSeenOnboarding: true,
+      hasRunFirstScan: true,
     },
   })
 
-  // Competitors
+  // Competitors (scoped to demo user)
   for (const c of COMPETITORS) {
-    await db.competitor.create({ data: c as any })
+    const threatLevel = c.priority === 'High' ? 'High' : c.priority === 'Medium' ? 'Medium' : 'Low'
+    await db.competitor.create({ data: { ...c, userId: 'user_default', threatLevel } as any })
   }
 
   // Agents
@@ -435,7 +440,7 @@ This week saw three Critical-severity developments: Anthropic launched the Compu
   // Sample chat history
   await db.chatHistory.create({
     data: {
-      userId: 'user_default',
+      user: { connect: { id: 'user_default' } },
       role: 'assistant',
       content: 'Welcome to CompetitorIQ. Ask me about competitor changes, pricing, products, hiring, or strategic recommendations.',
     },

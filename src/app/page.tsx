@@ -4,6 +4,10 @@ import * as React from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
 import { Providers } from '@/components/providers'
+import { AuthProvider, useAuth } from '@/components/auth/auth-provider'
+import { AuthScreen } from '@/components/auth/auth-screen'
+import { OnboardingScreen } from '@/components/onboarding/onboarding-screen'
+import { FirstScanScreen } from '@/components/onboarding/first-scan-screen'
 import { type NavKey, NAV_GROUPS } from '@/lib/nav'
 import { useQuery } from '@tanstack/react-query'
 import { DashboardView } from '@/components/views/dashboard-view'
@@ -21,6 +25,8 @@ import { ChatView } from '@/components/views/chat-view'
 import { AnalyticsView } from '@/components/views/analytics-view'
 import { AlertsView } from '@/components/views/alerts-view'
 import { AgentsView } from '@/components/views/agents-view'
+import { DigestView } from '@/components/views/digest-view'
+import { Loader2 } from 'lucide-react'
 
 const TITLE_MAP: Record<NavKey, { title: string; subtitle: string }> = {
   dashboard: { title: 'Dashboard', subtitle: 'Real-time competitor intelligence overview' },
@@ -38,19 +44,16 @@ const TITLE_MAP: Record<NavKey, { title: string; subtitle: string }> = {
   analytics: { title: 'Analytics', subtitle: 'Cross-competitor market trends' },
   alerts: { title: 'Alerts', subtitle: 'Critical competitor events needing attention' },
   agents: { title: 'AI Agents', subtitle: 'Specialized monitoring agents status' },
+  digest: { title: 'Weekly Digest', subtitle: 'Top changes across all competitors this week' },
 }
 
 function AppShell() {
   const [active, setActive] = React.useState<NavKey>('dashboard')
   const [collapsed, setCollapsed] = React.useState(false)
 
-  // Unread alert count for the badge
   const { data: alertsData } = useQuery<{ alerts: any[] }>({
     queryKey: ['alerts', 'all'],
-    queryFn: async () => {
-      const res = await fetch('/api/alerts')
-      return res.json()
-    },
+    queryFn: async () => (await fetch('/api/alerts')).json(),
   })
   const alertCount = (alertsData?.alerts ?? []).filter((a) => !a.isRead).length
 
@@ -73,6 +76,7 @@ function AppShell() {
       case 'analytics': return <AnalyticsView />
       case 'alerts': return <AlertsView />
       case 'agents': return <AgentsView />
+      case 'digest': return <DigestView />
       default: return <DashboardView onNavigate={setActive} />
     }
   }
@@ -112,10 +116,42 @@ function AppShell() {
   )
 }
 
+// Auth gate: routes based on authentication + onboarding state.
+function AuthGate() {
+  const { state } = useAuth()
+
+  if (state.status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="size-8 animate-spin text-primary mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Loading CompetitorIQ…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (state.status === 'unauthenticated') {
+    return <AuthScreen />
+  }
+
+  if (state.phase === 'onboarding') {
+    return <OnboardingScreen />
+  }
+
+  if (state.phase === 'first-scan') {
+    return <FirstScanScreen />
+  }
+
+  return <AppShell />
+}
+
 export default function Home() {
   return (
     <Providers>
-      <AppShell />
+      <AuthProvider>
+        <AuthGate />
+      </AuthProvider>
     </Providers>
   )
 }

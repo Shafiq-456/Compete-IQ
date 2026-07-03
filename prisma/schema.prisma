@@ -11,24 +11,37 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  avatar    String?
-  role      String   @default("Admin") // Admin | Analyst | Viewer
-  company   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  passwordHash       String?
+  name               String?
+  avatar             String?
+  role               String   @default("Admin") // Admin | Analyst | Viewer
+  company            String?
+  // Stage A: Onboarding fields
+  businessNiche      String?  // E-commerce | SaaS | FinTech | Healthcare | Real Estate | Education | Marketing | Food & Beverage | Other
+  businessName       String?
+  hasSeenOnboarding  Boolean  @default(false)  // Stage B: AI assistant gate
+  hasRunFirstScan    Boolean  @default(false)  // Stage C: first multi-agent scan
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  competitors        Competitor[]
+  chatHistory        ChatHistory[]
+  auditLogs          AuditLog[]
+  reports            Report[]
 }
 
 model Competitor {
   id          String   @id @default(cuid())
+  userId      String                        // Stage 2: multi-tenancy scope
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   industry    String
   website     String
   country     String
   description String?
-  priority    String   @default("Medium") // High | Medium | Low
+  priority    String   @default("Medium") // High | Medium | Low — used as threat_level / importance
   logo        String?
   status      String   @default("Active") // Active | Paused
   foundedYear Int?
@@ -36,6 +49,7 @@ model Competitor {
   revenue     String?
   socialLinks String?  // JSON string
   productCatalog String? // JSON string
+  threatLevel String   @default("Medium") // Critical | High | Medium | Low — explicit importance indicator
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -104,7 +118,7 @@ model NewsArticle {
   source       String   // Google News | RSS | Press Release | Blog
   url          String?
   summary      String?
-  category     String   // Funding | Acquisition | Expansion | Partnership | Award | Leadership | Product Launch
+  category     String   // Funding | Acquisition | Expansion | Partnership | Award | Leadership | Product Launch | Regulatory
   sentiment    String   @default("Neutral") // Positive | Negative | Neutral
   impact       String   @default("Medium") // High | Medium | Low
   publishedAt  DateTime
@@ -167,6 +181,8 @@ model SwotAnalysis {
   opportunities String  // JSON array
   threats      String   // JSON array
   summary      String?
+  // Stage D: battlecard-lite — actionable talking points
+  howToRespond String?  // JSON array of 2-3 specific recommendations
   generatedAt  DateTime @default(now())
 }
 
@@ -197,8 +213,10 @@ model Alert {
 
 model Report {
   id           String   @id @default(cuid())
+  userId       String?                       // Stage 2: scoped to user
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   title        String
-  reportType   String   // Daily | Weekly | Monthly | Executive | Custom
+  reportType   String   // Daily | Weekly | Monthly | Executive | Custom | Digest
   period       String
   content      String   // markdown
   highlights   String?  // JSON array
@@ -207,7 +225,8 @@ model Report {
 
 model ChatHistory {
   id        String   @id @default(cuid())
-  userId    String   @default("default-user")
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   role      String   // user | assistant
   content   String
   context   String?  // JSON
@@ -230,7 +249,8 @@ model Agent {
 
 model AuditLog {
   id        String   @id @default(cuid())
-  userId    String   @default("default-user")
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   action    String
   entity    String
   entityId  String?

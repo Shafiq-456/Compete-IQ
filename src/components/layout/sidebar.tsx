@@ -4,7 +4,7 @@ import * as React from 'react'
 import {
   LayoutDashboard, BarChart3, BellRing, Globe, Newspaper, Package,
   DollarSign, Users, Share2, Star, Grid3x3, FileText, MessageSquare,
-  Bot, Building2, Radar, type LucideIcon,
+  Bot, Building2, Radar, Inbox, type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { NAV_GROUPS, type NavKey } from '@/lib/nav'
@@ -16,7 +16,7 @@ import { motion } from 'framer-motion'
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard, BarChart3, BellRing, Globe, Newspaper, Package,
   DollarSign, Users, Share2, Star, Grid3x3, FileText, MessageSquare,
-  Bot, Building2,
+  Bot, Building2, Inbox,
 }
 
 export function Sidebar({

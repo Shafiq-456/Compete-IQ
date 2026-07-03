@@ -14,31 +14,108 @@ import { PageHeader } from '@/components/shared/primitives'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { slideInRight, slideInLeft, fadeUp, glowPulse } from '@/lib/animations'
+import { useAuth } from '@/components/auth/auth-provider'
 
-const SUGGESTED_PROMPTS = [
-  'Which competitor changed pricing this week?',
-  'Who launched new products?',
-  'Which company is growing fastest?',
-  'Show hiring trends across competitors.',
-  'Compare OpenAI and Anthropic.',
-  'What changed this month?',
-  'Who has the strongest AI portfolio?',
-  'Generate a SWOT for OpenAI.',
-]
+// Stage B: Niche-aware suggested prompts (replace generic OpenAI/Anthropic prompts).
+// Each niche gets prompts that make sense for that industry.
+const NICHE_PROMPTS: Record<string, string[]> = {
+  'E-commerce': [
+    'Summarize my competitive landscape',
+    'Which competitor cut prices this week?',
+    'What new products launched recently?',
+    'What should my marketing team emphasize vs competitors?',
+  ],
+  'SaaS': [
+    'Summarize my competitive landscape',
+    'Which competitor is the biggest threat?',
+    'What pricing changes happened this week?',
+    'What should my sales team say if a customer mentions a competitor?',
+  ],
+  'FinTech': [
+    'Summarize my competitive landscape',
+    'Any regulatory news about my competitors?',
+    'Which competitor is expanding fastest?',
+    'What are the biggest threats to my business this month?',
+  ],
+  'Healthcare': [
+    'Summarize my competitive landscape',
+    'What are customers saying about my competitors?',
+    'Any partnerships or FDA news recently?',
+    'Which competitor has the strongest product portfolio?',
+  ],
+  'Real Estate': [
+    'Summarize my competitive landscape',
+    'Which competitor launched new features?',
+    'What are customers complaining about?',
+    'What should I watch out for this month?',
+  ],
+  'Education': [
+    'Summarize my competitive landscape',
+    'Which competitor has the best reviews?',
+    'What new courses or features launched?',
+    'How are competitors pricing their plans?',
+  ],
+  'Marketing': [
+    'Summarize my competitive landscape',
+    'Which competitor is most active on social?',
+    'What new features or products launched?',
+    'What should my sales team say if a customer mentions a competitor?',
+  ],
+  'Food & Beverage': [
+    'Summarize my competitive landscape',
+    'What are customers saying about my competitors?',
+    'Which competitor is most active on social?',
+    'What should I watch out for this month?',
+  ],
+  'Other': [
+    'Summarize my competitive landscape',
+    'Which competitor is the biggest threat?',
+    'What should I watch out for this month?',
+    'What should my sales team say if a customer mentions a competitor?',
+  ],
+}
 
 export function ChatView() {
   const qc = useQueryClient()
+  const { state } = useAuth()
+  const user = state.status === 'authenticated' ? state.user : null
+  const niche = user?.businessNiche || 'Other'
   const [input, setInput] = React.useState('')
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+  const welcomeTriggered = React.useRef(false)
 
   const { data } = useQuery<{ history: any[] }>({
     queryKey: ['chat-history'],
-    queryFn: async () => {
-      const res = await fetch('/api/chat')
-      return res.json()
+    queryFn: async () => (await fetch('/api/chat')).json(),
+  })
+
+  // Stage B: detect first-time users and trigger the personalized AI welcome
+  const welcomeMutation = useMutation({
+    mutationFn: async () => (await fetch('/api/onboarding/welcome', { method: 'POST' })).json(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['chat-history'] })
+      qc.invalidateQueries({ queryKey: ['auth-me'] })
     },
   })
+
+  const history = data?.history ?? []
+
+  // If user is authenticated, has run first scan, but hasn't seen onboarding
+  // AND has no chat history yet → trigger welcome
+  React.useEffect(() => {
+    if (
+      user &&
+      user.hasRunFirstScan &&
+      !user.hasSeenOnboarding &&
+      history.length === 0 &&
+      !welcomeTriggered.current &&
+      !welcomeMutation.isPending
+    ) {
+      welcomeTriggered.current = true
+      welcomeMutation.mutate()
+    }
+  }, [user, history.length, welcomeMutation])
 
   const mutation = useMutation({
     mutationFn: async (message: string) => {
@@ -55,8 +132,6 @@ export function ChatView() {
     },
     onError: (e: any) => toast.error(e.message),
   })
-
-  const history = data?.history ?? []
 
   React.useEffect(() => {
     if (scrollRef.current) {
@@ -79,6 +154,9 @@ export function ChatView() {
     }
   }
 
+  const suggestedPrompts = NICHE_PROMPTS[niche] || NICHE_PROMPTS['Other']
+  const showSuggestions = history.length <= 1
+
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       <motion.div variants={fadeUp} initial="hidden" animate="show">
@@ -98,7 +176,9 @@ export function ChatView() {
               </div>
               <div>
                 <CardTitle className="text-base">CompetitorIQ Assistant</CardTitle>
-                <CardDescription>Connected to live database · 8 competitors monitored</CardDescription>
+                <CardDescription>
+                  Connected to live data{user?.businessNiche ? ` · ${user.businessNiche} niche` : ''}
+                </CardDescription>
               </div>
             </div>
             <div className="flex items-center gap-1.5">
@@ -109,7 +189,7 @@ export function ChatView() {
         </CardHeader>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-4">
-          {history.length === 0 && !mutation.isPending && (
+          {history.length === 0 && !mutation.isPending && !welcomeMutation.isPending && (
             <div className="text-center py-8">
               <motion.div
                 variants={glowPulse}
@@ -121,6 +201,20 @@ export function ChatView() {
               </motion.div>
               <p className="text-sm font-medium mb-1">Ask me anything about your competitors</p>
               <p className="text-xs text-muted-foreground mb-4">I have access to your live monitoring data — news, pricing, products, hiring, reviews, and more.</p>
+            </div>
+          )}
+
+          {welcomeMutation.isPending && history.length === 0 && (
+            <div className="flex items-start gap-3">
+              <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Bot className="size-4 text-primary" />
+              </div>
+              <div className="rounded-2xl bg-muted px-4 py-3">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 className="size-3 animate-spin" />
+                  Generating your personalized welcome…
+                </div>
+              </div>
             </div>
           )}
 
@@ -143,14 +237,14 @@ export function ChatView() {
           )}
         </div>
 
-        {/* Suggested prompts */}
-        {history.length <= 1 && (
+        {/* Stage B: Niche-aware suggested prompts */}
+        {showSuggestions && (
           <div className="px-4 pb-2 flex flex-wrap gap-1.5">
-            {SUGGESTED_PROMPTS.map((p) => (
+            {suggestedPrompts.map((p) => (
               <button
                 key={p}
                 onClick={() => send(p)}
-                disabled={mutation.isPending}
+                disabled={mutation.isPending || welcomeMutation.isPending}
                 className="text-[11px] px-2.5 py-1 rounded-full border bg-card hover:bg-muted hover:border-primary/30 transition-colors"
               >
                 {p}

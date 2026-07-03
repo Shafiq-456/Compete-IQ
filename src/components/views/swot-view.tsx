@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Grid3x3, Sparkles, RefreshCw, Check, AlertTriangle, TrendingUp,
-  TrendingDown, Lightbulb, ShieldAlert,
+  TrendingDown, Lightbulb, ShieldAlert, Target,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -127,6 +127,35 @@ export function SwotView() {
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* Stage D: Battlecard — How to Respond (highlighted, distinct card) */}
+          {Array.isArray(swot.howToRespond) && swot.howToRespond.length > 0 && (
+            <motion.div variants={scaleIn}>
+              <Card className="border-chart-3/40 bg-gradient-to-br from-chart-3/10 via-chart-2/5 to-transparent glow-primary">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="size-9 rounded-xl bg-chart-3/20 flex items-center justify-center">
+                      <Target className="size-5 text-chart-3" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold">How to Respond — Sales Battlecard</h3>
+                      <p className="text-xs text-muted-foreground">Actionable talking points for {competitor?.name}</p>
+                    </div>
+                  </div>
+                  <ol className="space-y-2.5">
+                    {swot.howToRespond.map((rec: string, i: number) => (
+                      <li key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-card/60 border border-chart-3/20">
+                        <span className="size-5 rounded-full bg-chart-3/20 text-chart-3 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                          {i + 1}
+                        </span>
+                        <span className="text-sm leading-relaxed">{rec}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
           {/* SWOT grid */}
           <motion.div

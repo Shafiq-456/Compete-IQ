@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function GET() {
+  const user = await getCurrentUser()
+  if (!user) return NextResponse.json({ totals: { competitors: 0, news: 0, changes: 0, jobs: 0, social: 0, reviews: 0, alerts: 0 } })
   const [competitors, news, changes, pricing, jobs, social, reviews, alerts] = await Promise.all([
-    db.competitor.findMany(),
-    db.newsArticle.findMany({ include: { competitor: true } }),
-    db.websiteChange.findMany({ include: { competitor: true } }),
-    db.pricingHistory.findMany({ include: { competitor: true } }),
-    db.jobPosting.findMany({ include: { competitor: true } }),
-    db.socialPost.findMany({ include: { competitor: true } }),
-    db.review.findMany({ include: { competitor: true } }),
-    db.alert.findMany({ include: { competitor: true } }),
+    db.competitor.findMany({ where: { userId: user.id } }),
+    db.newsArticle.findMany({ where: { competitor: { userId: user.id } }, include: { competitor: true } }),
+    db.websiteChange.findMany({ where: { competitor: { userId: user.id } }, include: { competitor: true } }),
+    db.pricingHistory.findMany({ where: { competitor: { userId: user.id } }, include: { competitor: true } }),
+    db.jobPosting.findMany({ where: { competitor: { userId: user.id } }, include: { competitor: true } }),
+    db.socialPost.findMany({ where: { competitor: { userId: user.id } }, include: { competitor: true } }),
+    db.review.findMany({ where: { competitor: { userId: user.id } }, include: { competitor: true } }),
+    db.alert.findMany({ where: { competitor: { userId: user.id } }, include: { competitor: true } }),
   ])
 
   // News by category

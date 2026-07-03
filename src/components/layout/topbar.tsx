@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useTheme } from 'next-themes'
-import { Search, Moon, Sun, Menu, BellRing, Radar, ChevronLeft } from 'lucide-react'
+import { Search, Moon, Sun, Menu, BellRing, Radar, ChevronLeft, Inbox, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -20,11 +20,12 @@ import {
   Bot, Building2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/components/auth/auth-provider'
 
 const ICONS = {
   LayoutDashboard, BarChart3, BellRing, Globe, Newspaper, Package,
   DollarSign, Users, Share2, Star, Grid3x3, FileText, MessageSquare,
-  Bot, Building2,
+  Bot, Building2, Inbox,
 }
 
 export function Topbar({
@@ -43,6 +44,8 @@ export function Topbar({
   onOpenAlerts: () => void
 }) {
   const { theme, setTheme } = useTheme()
+  const { state, logout } = useAuth()
+  const user = state.status === 'authenticated' ? state.user : null
   const [mounted, setMounted] = React.useState(false)
   React.useEffect(() => setMounted(true), [])
 
@@ -112,13 +115,23 @@ export function Topbar({
       <div className="flex items-center gap-2 pl-2 border-l">
         <Avatar className="size-8 bg-gradient-to-br from-primary to-chart-2">
           <AvatarFallback className="bg-transparent text-primary-foreground text-xs font-semibold">
-            JA
+            {user?.avatar || (user?.name || user?.email || 'U').slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
         <div className="hidden xl:flex flex-col leading-none">
-          <span className="text-xs font-medium">Jordan Avery</span>
-          <span className="text-[10px] text-muted-foreground">Admin</span>
+          <span className="text-xs font-medium">{user?.name || 'User'}</span>
+          <span className="text-[10px] text-muted-foreground">{user?.role || 'Admin'}{user?.businessNiche ? ` · ${user.businessNiche}` : ''}</span>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 ml-1"
+          onClick={() => logout()}
+          aria-label="Log out"
+          title="Log out"
+        >
+          <LogOut className="size-4" />
+        </Button>
       </div>
     </header>
   )

@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { aiChat } from '@/lib/ai'
+import { getCurrentUser } from '@/lib/auth'
 
-function buildContext(data: any) {
+function buildContext(data: any, niche?: string, businessName?: string) {
   const lines: string[] = []
+  if (niche) lines.push(`USER BUSINESS: ${businessName || 'N/A'} (industry: ${niche})`)
   lines.push(`MONITORED COMPETITORS (${data.competitors.length}):`)
   for (const c of data.competitors) {
-    lines.push(`- ${c.name} | ${c.industry} | ${c.country} | Priority: ${c.priority} | Status: ${c.status}`)
+    lines.push(`- ${c.name} | ${c.industry} | ${c.country} | Priority: ${c.priority} | Threat: ${c.threatLevel} | Status: ${c.status}`)
   }
   lines.push('\nRECENT ALERTS:')
   for (const a of data.alerts.slice(0, 8)) {
@@ -39,37 +41,45 @@ function buildContext(data: any) {
 }
 
 export async function GET() {
-  const history = await db.chatHistory.findMany({ orderBy: { createdAt: 'asc' }, take: 50 })
+  const user = await getCurrentUser()
+  if (!user) return NextResponse.json({ history: [] })
+  const history = await db.chatHistory.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'asc' },
+    take: 50,
+  })
   return NextResponse.json({ history })
 }
 
 export async function POST(req: NextRequest) {
+  const user = await getCurrentUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const { message } = await req.json()
     if (!message) return NextResponse.json({ error: 'message required' }, { status: 400 })
 
     // Save user message
     await db.chatHistory.create({
-      data: { userId: 'user_default', role: 'user', content: message },
+      data: { user: { connect: { id: user.id } }, role: 'user', content: message },
     })
 
-    // Build context from database
+    // Build context from database (scoped to user)
     const [competitors, alerts, changes, news, pricing, jobs, products] = await Promise.all([
-      db.competitor.findMany(),
-      db.alert.findMany({ orderBy: { createdAt: 'desc' }, take: 15, include: { competitor: true } }),
-      db.websiteChange.findMany({ orderBy: { detectedAt: 'desc' }, take: 15, include: { competitor: true } }),
-      db.newsArticle.findMany({ orderBy: { publishedAt: 'desc' }, take: 15, include: { competitor: true } }),
-      db.pricingHistory.findMany({ where: { previousPrice: { not: null } }, include: { competitor: true } }),
-      db.jobPosting.findMany({ take: 20, include: { competitor: true } }),
-      db.product.findMany({ include: { competitor: true } }),
+      db.competitor.findMany({ where: { userId: user.id } }),
+      db.alert.findMany({ where: { competitor: { userId: user.id } }, orderBy: { createdAt: 'desc' }, take: 15, include: { competitor: true } }),
+      db.websiteChange.findMany({ where: { competitor: { userId: user.id } }, orderBy: { detectedAt: 'desc' }, take: 15, include: { competitor: true } }),
+      db.newsArticle.findMany({ where: { competitor: { userId: user.id } }, orderBy: { publishedAt: 'desc' }, take: 15, include: { competitor: true } }),
+      db.pricingHistory.findMany({ where: { competitor: { userId: user.id }, previousPrice: { not: null } }, include: { competitor: true } }),
+      db.jobPosting.findMany({ where: { competitor: { userId: user.id } }, take: 20, include: { competitor: true } }),
+      db.product.findMany({ where: { competitor: { userId: user.id } }, include: { competitor: true } }),
     ])
 
-    const context = buildContext({ competitors, alerts, changes, news, pricing, jobs, products })
+    const context = buildContext({ competitors, alerts, changes, news, pricing, jobs, products }, user.businessNiche || undefined, user.businessName || undefined)
     const reply = await aiChat(message, context)
 
     // Save assistant message
     await db.chatHistory.create({
-      data: { userId: 'user_default', role: 'assistant', content: reply },
+      data: { user: { connect: { id: user.id } }, role: 'assistant', content: reply },
     })
 
     return NextResponse.json({ reply })
