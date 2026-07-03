@@ -8,7 +8,7 @@ import { useAuth } from '@/components/auth/auth-provider'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Sparkles, Loader2, Check, Clock, Bot, ArrowRight, AlertCircle } from 'lucide-react'
+import { Sparkles, Loader2, Check, Clock, Bot, ArrowRight, AlertCircle, RefreshCw } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { staggerContainer, fadeUp, scaleIn } from '@/lib/animations'
 import { toast } from 'sonner'
@@ -23,7 +23,7 @@ type AgentStep = {
   itemsFound?: number
 }
 
-const STEP_DURATION_MS = 900 // time each agent appears to "run" — staggered for visual effect
+const STEP_DURATION_MS = 900
 
 export function FirstScanScreen() {
   const { refresh } = useAuth()
@@ -32,13 +32,11 @@ export function FirstScanScreen() {
   const [scanComplete, setScanComplete] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
-  // Fetch the ordered agent list for this niche
   const { data: agentPlan } = useQuery<{ agents: AgentStep[]; niche: string }>({
     queryKey: ['first-scan-plan'],
     queryFn: async () => (await fetch('/api/onboarding/scan')).json(),
   })
 
-  // Set the initial step state once the plan loads
   React.useEffect(() => {
     if (agentPlan?.agents && steps.length === 0) {
       setSteps(agentPlan.agents.map((a) => ({ ...a, status: 'queued' })))
@@ -50,14 +48,22 @@ export function FirstScanScreen() {
       const res = await fetch('/api/onboarding/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ force: false }),
+        body: JSON.stringify({ force: true }),
       })
+      // Handle non-JSON responses gracefully (e.g. HTML error pages from timeouts)
+      const contentType = res.headers.get('content-type') || ''
+      if (!contentType.includes('application/json')) {
+        const text = await res.text()
+        console.error('[scan] Non-JSON response:', res.status, text.slice(0, 200))
+        throw new Error(`Server returned ${res.status} (expected JSON). The scan may have timed out — please retry.`)
+      }
       const j = await res.json()
-      if (!res.ok) throw new Error(j.error || 'Scan failed')
+      if (!res.ok || !j.ok) {
+        throw new Error(j.error || `Scan failed with status ${res.status}`)
+      }
       return j
     },
     onSuccess: (data) => {
-      // Mark all agents done with the real item counts
       setSteps((prev) =>
         prev.map((s) => {
           const found = (data.agents || []).find((a: any) => a.type === s.type)
@@ -65,19 +71,21 @@ export function FirstScanScreen() {
         })
       )
       setScanComplete(true)
+      setError(null)
     },
     onError: (e: any) => {
-      setError(e.message)
-      toast.error(e.message)
+      console.error('[scan] Mutation error:', e)
+      setError(e.message || 'Scan failed. Please retry.')
+      // Mark all pending agents as done so the UI isn't stuck
+      setSteps((prev) => prev.map((s) => s.status === 'done' ? s : { ...s, status: 'done', itemsFound: 0 }))
+      toast.error(e.message || 'Scan failed — you can retry or proceed to the dashboard.')
     },
   })
 
-  // Begin the scan automatically once steps load
+  // Auto-start scan once steps load
   React.useEffect(() => {
-    if (steps.length > 0 && !scanStarted && !scanComplete) {
+    if (steps.length > 0 && !scanStarted && !scanComplete && !error) {
       setScanStarted(true)
-      // Stagger the visual "running" state for each agent — gives the user something
-      // impressive to watch while the actual POST runs in the background.
       steps.forEach((_, i) => {
         setTimeout(() => {
           setSteps((prev) =>
@@ -85,14 +93,21 @@ export function FirstScanScreen() {
           )
         }, i * STEP_DURATION_MS)
       })
-      // Kick off the actual scan (which can take 5-15s for LLM generation) in parallel
       runScan.mutate()
     }
-  }, [steps.length, scanStarted, scanComplete])
+  }, [steps.length, scanStarted, scanComplete, error])
+
+  const retry = () => {
+    setError(null)
+    setScanStarted(false)
+    setScanComplete(false)
+    setSteps((prev) => prev.map((s) => ({ ...s, status: 'queued' })))
+  }
 
   const doneCount = steps.filter((s) => s.status === 'done').length
   const runningCount = steps.filter((s) => s.status === 'running').length
   const progress = steps.length > 0 ? Math.round((doneCount / steps.length) * 100) : 0
+  const isFinished = scanComplete || (error && doneCount === steps.length)
 
   const enterApp = async () => {
     await refresh()
@@ -147,21 +162,32 @@ export function FirstScanScreen() {
           ))}
         </motion.div>
 
-        {/* Error state */}
+        {/* Error state with retry + proceed */}
         {error && (
-          <motion.div variants={fadeUp} className="mt-4 p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-sm text-destructive flex items-start gap-2">
-            <AlertCircle className="size-4 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold">Scan failed</p>
-              <p className="text-xs opacity-90">{error}</p>
-              <Button size="sm" variant="outline" className="mt-2" onClick={() => runScan.mutate()}>
+          <motion.div variants={fadeUp} className="mt-4 p-4 rounded-lg border border-amber-500/30 bg-amber-500/10 text-sm">
+            <div className="flex items-start gap-2 mb-3">
+              <AlertCircle className="size-4 shrink-0 mt-0.5 text-amber-500" />
+              <div>
+                <p className="font-semibold text-amber-700 dark:text-amber-400">Scan encountered an issue</p>
+                <p className="text-xs mt-1 text-amber-600 dark:text-amber-500">{error}</p>
+                <p className="text-xs mt-1 text-muted-foreground">
+                  Your dashboard may still have partial data. You can retry the scan or proceed to the dashboard.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={retry} disabled={runScan.isPending}>
+                {runScan.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
                 Retry scan
+              </Button>
+              <Button size="sm" onClick={enterApp}>
+                Proceed to dashboard <ArrowRight className="size-3.5" />
               </Button>
             </div>
           </motion.div>
         )}
 
-        {/* Completion state */}
+        {/* Success state */}
         <AnimatePresence>
           {scanComplete && (
             <motion.div
@@ -193,10 +219,10 @@ export function FirstScanScreen() {
           )}
         </AnimatePresence>
 
-        {runScan.isPending && !scanComplete && (
+        {runScan.isPending && !scanComplete && !error && (
           <p className="text-center text-[10px] text-muted-foreground mt-4 flex items-center justify-center gap-1.5">
             <Loader2 className="size-3 animate-spin" />
-            Generating intelligence data with AI — this takes 5-15 seconds…
+            Generating intelligence data with AI — this can take 30-60 seconds…
           </p>
         )}
       </motion.div>

@@ -198,3 +198,54 @@ Stage Summary:
 - Production build: PASS (28 routes, was 20)
 - Files changed (NEW): src/lib/auth.ts, src/lib/scope.ts, src/lib/niche-agent-priority.ts, src/lib/initial-scan.ts, src/components/auth/auth-provider.tsx, src/components/auth/auth-screen.tsx, src/components/onboarding/onboarding-screen.tsx, src/components/onboarding/first-scan-screen.tsx, src/components/views/digest-view.tsx, src/app/api/auth/{signup,login,logout,me}/route.ts, src/app/api/onboarding/route.ts, src/app/api/onboarding/scan/route.ts, src/app/api/onboarding/welcome/route.ts, src/app/api/digest/route.ts
 - Files modified: prisma/schema.prisma, scripts/seed.ts, src/lib/ai.ts (added generateOnboardingWelcome + howToRespond in SWOT prompt), src/app/page.tsx (auth gate), src/lib/nav.ts (added digest), src/components/layout/sidebar.tsx + topbar.tsx (digest nav + logout button), src/components/views/{swot,chat}-view.tsx, src/app/api/{competitors,competitors/[id],dashboard,alerts,agents,news,products,pricing,careers,social,reviews,changes,analytics,insights,reports,swot,chat}/route.ts (all scoped by user)
+
+---
+Task ID: 4
+Agent: main
+Task: Fix scan failure + comprehensive error audit + deployment readiness check
+
+Work Log:
+- Diagnosed "Scan failed - Unexpected token '<'" error reported by user jaisamyukth@gmail.com
+- Root cause found in src/lib/initial-scan.ts:
+  * Line 314: `db.insight.create({ data: { competitor: null, ... } })` — Prisma rejects `competitor: null`, expects `competitorId: null`
+  * This caused the scan to crash AFTER generating all intelligence data (news, pricing, products, etc. were created successfully but the final TrendAgent insight creation threw a PrismaClientValidationError)
+  * The 500 error caused Next.js to return an HTML error page, which the browser couldn't parse as JSON → "Unexpected token '<'"
+- Fixed: changed `competitor: null` → `competitorId: null` in initial-scan.ts
+- Additional robustness improvements to initial-scan.ts:
+  * Rewrote LLM call to be per-competitor (smaller payloads = faster + more reliable, ~10-15s per competitor instead of 30+ seconds for all at once)
+  * Added deterministic fallback data generator (generateFallbackData) — if LLM fails or times out, user still gets a populated dashboard with niche-aware templated data
+  * Added JSON repair logic for truncated LLM responses
+  * Better error logging with [scan] prefix for debugging
+- Fixed scan endpoint (src/app/api/onboarding/scan/route.ts):
+  * Added idempotency: force=true now deletes existing scan data before re-running (prevents duplicates on retry)
+  * Added explicit `return NextResponse.json(...)` in catch block to ensure JSON is always returned, never HTML
+  * Better error logging with [scan] FATAL ERROR prefix
+- Fixed first-scan-screen.tsx:
+  * Added content-type check before parsing response — if non-JSON, shows user-friendly error instead of crashing with "Unexpected token"
+  * Added retry button + "Proceed to dashboard" button on error (user isn't stuck)
+  * Mark all agents as done on error so UI isn't stuck in "running" state
+  * Changed to force=true on scan call (ensures clean retry with idempotent cleanup)
+- Fixed user jaisamyukth@gmail.com account:
+  * Cleaned up partial scan data (8 news, 13 alerts from failed scan)
+  * Reset hasRunFirstScan to false so they get a clean scan on next login
+- Comprehensive testing (scripts/comprehensive-test.sh):
+  * All 17 GET API endpoints return valid JSON (no HTML errors)
+  * SWOT generates with battlecard (3 items) in 12s
+  * AI chat works in 2s with niche context
+  * Full new-user flow: signup → onboarding → scan → dashboard populated (4 news, 4 pricing, 4 products, 4 jobs, 4 social, 4 reviews, 6 alerts, 1 insight)
+  * Scan completes in 27s with no errors
+  * No errors in server log
+- Browser UI test: all 15 views render correctly with no application errors
+  * Dashboard, Analytics, Alerts, Website, News, Products, Pricing, Careers, Social, Reviews, SWOT, Reports, Chat Assistant, AI Agents, Competitors, Weekly Digest — all ✓
+  * SWOT battlecard ("How to Respond") visible
+- Production build: PASS (28 routes, 0 errors)
+- Dev server running on http://localhost:3000
+
+Stage Summary:
+- Root cause of scan failure: Prisma `competitor: null` → `competitorId: null` (1-line fix)
+- 3 files changed: src/lib/initial-scan.ts, src/app/api/onboarding/scan/route.ts, src/components/onboarding/first-scan-screen.tsx
+- All 17 API endpoints verified returning valid JSON
+- All 15 views verified rendering without errors
+- Full new-user flow verified end-to-end (signup → onboarding → scan → populated dashboard)
+- User account jaisamyukth@gmail.com reset and ready for clean scan
+- Dev server running and ready for user testing
