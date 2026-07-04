@@ -18,6 +18,7 @@ type AppUser = {
   role?: string
   hasSeenOnboarding: boolean
   hasRunFirstScan: boolean
+  plan: string
   businessNiche?: string | null
   businessName?: string | null
 }

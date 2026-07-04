@@ -168,7 +168,7 @@ async function seed() {
     data: {
       id: 'user_default',
       email: 'analyst@competitoriq.ai',
-      name: 'Jordan Avery',
+      name: 'Shafiq',
       role: 'Admin',
       company: 'CompetitorIQ',
       avatar: 'JA',

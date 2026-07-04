@@ -16,26 +16,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CompetitorIQ — AI Competitor Intelligence Agent",
+  title: "CompeteIQ — AI Competitor Intelligence Agent",
   description:
     "Monitor competitors. Detect market changes. Generate business insights automatically with AI agents.",
   keywords: [
-    "CompetitorIQ",
+    "CompeteIQ",
     "competitive intelligence",
     "AI agents",
     "market monitoring",
     "business insights",
     "competitor analysis",
   ],
-  authors: [{ name: "CompetitorIQ" }],
+  authors: [{ name: "CompeteIQ" }],
   icons: {
     icon: "/logo.svg",
   },
   openGraph: {
-    title: "CompetitorIQ — AI Competitor Intelligence Agent",
+    title: "CompeteIQ — AI Competitor Intelligence Agent",
     description:
       "Monitor competitors. Detect market changes. Generate business insights automatically.",
-    siteName: "CompetitorIQ",
+    siteName: "CompeteIQ",
     type: "website",
   },
 };

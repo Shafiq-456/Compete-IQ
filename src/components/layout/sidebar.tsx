@@ -35,7 +35,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        'hidden md:flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-300',
+        'hidden md:flex flex-col border-r bg-sidebar/80 backdrop-blur-md text-sidebar-foreground transition-all duration-300',
         collapsed ? 'w-[72px]' : 'w-[260px]'
       )}
     >
@@ -46,7 +46,7 @@ export function Sidebar({
         </div>
         {!collapsed && (
           <div className="flex flex-col leading-none">
-            <span className="text-base font-bold tracking-tight">CompetitorIQ</span>
+            <span className="text-base font-bold tracking-tight">CompeteIQ</span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest">AI Intelligence</span>
           </div>
         )}

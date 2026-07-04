@@ -1,0 +1,57 @@
+================================================================================
+PROJECT SUMMARY: CompetitorIQ (Simplified Explainer)
+================================================================================
+
+What is this project?
+CompetitorIQ is a tool that helps businesses keep an eye on their competitors. Instead 
+of having a human check competitors' websites, prices, and social media every day, 
+this app does it automatically using AI.
+
+Think of it as a "digital spy/analyst team" that gives a company weekly reports and 
+tells them exactly how to beat their rivals.
+
+--------------------------------------------------------------------------------
+1. How it works (The Core Features in Plain English)
+--------------------------------------------------------------------------------
+* Tailored AI Assistants (Niche Scanning):
+  When a user signs up, they select their industry (like Online Shopping, Banking, 
+  or Healthcare). The app automatically customizes itself. If you're in Banking, it 
+  checks news and rules first. If you're in Online Shopping, it checks prices and 
+  social media reviews first.
+
+* Sales Battlecards (SWOT Analysis):
+  The AI analyzes the strengths and weaknesses of each competitor and gives the 
+  sales team a cheat sheet (a "battlecard") with 3 concrete tips on how to win deals 
+  against them.
+
+* Weekly Digest (The Inbox):
+  Instead of reading hundreds of updates, the user gets a neat weekly summary card 
+  categorized by topic (e.g., "Pricing Changes," "New Products," "Job Openings").
+
+* Chat with your Competitor Data:
+  Users can type questions to an AI assistant—like "Did competitor X raise their 
+  prices last week?"—and the AI looks at the stored data to give an instant answer.
+
+--------------------------------------------------------------------------------
+2. The Technology Behind It (For the Technical Recruiter)
+--------------------------------------------------------------------------------
+* Frontend (What users see): 
+  - Next.js 16 & React 19 (for a fast, modern web experience).
+  - Tailwind CSS v4 & Framer Motion (for smooth, gorgeous visual animations and a 
+    futuristic "Aurora" color theme).
+  
+* Backend (How it handles data):
+  - Prisma & SQLite (to store competitor details safely).
+  - Secure Login System (keeps user data private and separate so companies can't 
+    peek at each other's research).
+  - AI Integrations (uses AI SDKs to scan and extract clean info from text).
+
+--------------------------------------------------------------------------------
+3. Why this matters (The Business Value)
+--------------------------------------------------------------------------------
+* Saves Time: Replaces hours of manual web-surfing with automated daily tracking.
+* Drives Sales: Equips sales reps with instant counter-arguments when pitching to 
+  clients.
+* Prevents Surprises: Alerts the company immediately if a competitor drops their 
+  prices or launches a new product.
+================================================================================

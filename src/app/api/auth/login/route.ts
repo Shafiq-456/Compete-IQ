@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
             hasRunFirstScan: user.hasRunFirstScan,
             businessNiche: user.businessNiche,
             businessName: user.businessName,
+            plan: user.plan,
           },
         })
       }
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
         hasRunFirstScan: user.hasRunFirstScan,
         businessNiche: user.businessNiche,
         businessName: user.businessName,
+        plan: user.plan,
       },
     })
   } catch (e: any) {

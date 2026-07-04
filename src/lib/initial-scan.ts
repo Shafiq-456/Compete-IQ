@@ -2,7 +2,7 @@
 // Given a user's niche + competitors, generates realistic intelligence data
 // using LLM-grounded templates. Falls back to deterministic seed data if LLM fails.
 import { db } from './db'
-import { getZAI } from './ai'
+import { groqChat } from './ai'
 import type { Niche } from './niche-agent-priority'
 
 type ScanInput = {
@@ -28,6 +28,65 @@ const NICHES_WITH_CONTEXT: Record<string, string> = {
   'Other': 'General competitive intelligence across all channels.',
 }
 
+// Helper to fetch homepage title & description metadata in real-time
+async function fetchWebMetadata(url: string): Promise<string> {
+  try {
+    const formattedUrl = url.startsWith('http') ? url : `https://${url}`
+    const res = await fetch(formattedUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+      },
+      signal: AbortSignal.timeout(5000)
+    })
+    if (!res.ok) return ''
+    const html = await res.text()
+    const titleMatch = html.match(/<title>([\s\S]*?)<\/title>/i)
+    const descMatch = html.match(/<meta\s+name=["']description["']\s+content=["']([\s\S]*?)["']/i) ||
+                      html.match(/<meta\s+content=["']([\s\S]*?)["']\s+name=["']description["']/i)
+    
+    return `Title: ${titleMatch ? titleMatch[1].trim() : 'Unknown'}\nDescription: ${descMatch ? descMatch[1].trim() : 'Unknown'}`
+  } catch (err: any) {
+    console.warn(`[scan] Could not fetch real-time metadata for ${url}:`, err.message)
+    return ''
+  }
+}
+
+// Helper to crawl live search results from DuckDuckGo HTML search without API keys
+async function fetchRealTimeSearch(query: string): Promise<{ title: string; snippet: string; url: string }[]> {
+  try {
+    const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+      },
+      signal: AbortSignal.timeout(5000)
+    })
+    if (!res.ok) return []
+    const html = await res.text()
+    const results: { title: string; snippet: string; url: string }[] = []
+    
+    const blocks = html.split('<div class="result results_links')
+    for (const block of blocks.slice(1, 4)) {
+      const titleMatch = block.match(/<a class="result__url"[^>]*>([\s\S]*?)<\/a>/i)
+      const snippetMatch = block.match(/<a class="result__snippet"[^>]*>([\s\S]*?)<\/a>/i)
+      const urlMatch = block.match(/href="([^"]*)"/i)
+      
+      if (titleMatch && snippetMatch) {
+        const title = titleMatch[1].replace(/<[^>]*>/g, '').trim()
+        const snippet = snippetMatch[1].replace(/<[^>]*>/g, '').trim()
+        let url = urlMatch ? urlMatch[1] : ''
+        if (url.includes('uddg=')) {
+          url = decodeURIComponent(url.split('uddg=')[1].split('&')[0])
+        }
+        results.push({ title, snippet, url })
+      }
+    }
+    return results
+  } catch (err: any) {
+    console.warn(`[scan] DuckDuckGo search crawler error:`, err.message)
+    return []
+  }
+}
+
 // Call LLM for a SINGLE competitor (smaller payload = faster + more reliable)
 async function generateForCompetitor(
   competitorName: string,
@@ -36,10 +95,24 @@ async function generateForCompetitor(
   nicheContext: string
 ): Promise<any> {
   try {
-    const zai = await getZAI()
-    const prompt = `Generate realistic competitive intelligence for "${competitorName}" (website: ${competitorWebsite}) in the ${niche} industry.
+    // 1. Retrieve live website metadata & real-time search results
+    console.log(`[scan] Running real-time metadata fetch for: ${competitorWebsite}`)
+    const webMeta = await fetchWebMetadata(competitorWebsite)
+    
+    console.log(`[scan] Crawling real-time news & changes on the web for: ${competitorName}`)
+    const searchResults = await fetchRealTimeSearch(`${competitorName} ${niche} news pricing`)
+    
+    const prompt = `You are scanning the competitor "${competitorName}" (website: ${competitorWebsite}) in the ${niche} industry.
+
+LIVE WEBPAGE DETAILS:
+${webMeta || 'None found.'}
+
+LIVE WEB SEARCH RESULTS:
+${searchResults.length > 0 ? searchResults.map((r, i) => `${i+1}. ${r.title}\n   Link: ${r.url}\n   Snippet: ${r.snippet}`).join('\n') : 'None found.'}
 
 NICHE CONTEXT: ${nicheContext}
+
+Generate realistic competitive intelligence for "${competitorName}" grounded in the live webpage details and search results above. Maintain accuracy with respect to the actual products, URLs, headlines, and details discovered.
 
 Return STRICT JSON only (no markdown fences, no prose). Use this exact shape with EXACTLY 2 items per channel:
 {
@@ -68,40 +141,36 @@ Return STRICT JSON only (no markdown fences, no prose). Use this exact shape wit
 
 Rules:
 - Generate EXACTLY 2 items per channel (14 total items)
-- Use realistic specifics — actual product names, real-sounding headlines, specific prices
+- Align with details matching actual product names or search snippets if present
 - Make it relevant to the ${niche} industry
 - Keep each text field under 120 characters
 - Vary sentiment (don't make everything positive)
 - Output MUST be valid JSON, no markdown fences, no commentary before or after`
 
-    const response = await zai.chat.completions.create({
-      messages: [
+    const text = await groqChat(
+      [
         { role: 'system', content: 'You are a JSON-only API. Respond with valid JSON only. No markdown fences. No prose.' },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.7,
-      max_tokens: 2500,
-    })
-
-    const text = response.choices?.[0]?.message?.content ?? ''
+      { temperature: 0.7, max_tokens: 2500 }
+    )
     let cleaned = text.trim()
     // Strip markdown fences if present
     if (cleaned.startsWith('```')) {
       cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
     }
-    // If truncated, try to repair
-    const fr = (response as any)?.choices?.[0]?.finish_reason
-    if (fr && fr !== 'stop') {
-      console.warn(`[scan] LLM response truncated for ${competitorName} (finish_reason=${fr}), attempting repair`)
+    // Try to repair if JSON is truncated (unclosed braces/brackets)
+    try {
+      JSON.parse(cleaned)
+    } catch {
+      console.warn(`[scan] LLM response may be truncated for ${competitorName}, attempting repair`)
       const lastClose = cleaned.lastIndexOf('}')
       if (lastClose > -1) {
         const fragment = cleaned.slice(0, lastClose + 1)
-        // Count open/close braces to see if we need to close more
         const opens = (fragment.match(/{/g) || []).length
         const closes = (fragment.match(/}/g) || []).length
         let repaired = fragment
         for (let i = 0; i < opens - closes; i++) repaired += '}'
-        // Also close any unclosed arrays
         const openBrackets = (repaired.match(/\[/g) || []).length
         const closeBrackets = (repaired.match(/\]/g) || []).length
         for (let i = 0; i < openBrackets - closeBrackets; i++) repaired += ']'

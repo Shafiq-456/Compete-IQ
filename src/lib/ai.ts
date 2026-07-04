@@ -1,11 +1,60 @@
-import ZAI from 'z-ai-web-dev-sdk'
+// AI layer — uses Groq's OpenAI-compatible API for fast LLM inference.
+// Falls back to z-ai-web-dev-sdk if GROQ_API_KEY is not set.
 
-let _zai: any = null
+const GROQ_API_KEY = process.env.GROQ_API_KEY
+const GROQ_BASE_URL = 'https://api.groq.com/openai/v1'
+const GROQ_MODEL = 'llama-3.3-70b-versatile' // fast & capable
 
-export async function getZAI() {
-  if (_zai) return _zai
-  _zai = await ZAI.create()
-  return _zai
+// ---------- Groq chat helper ----------
+
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
+export async function groqChat(messages: ChatMessage[], opts?: { temperature?: number; max_tokens?: number }): Promise<string> {
+  if (!GROQ_API_KEY) {
+    // Fallback to z-ai-web-dev-sdk if no Groq key
+    return fallbackChat(messages, opts)
+  }
+
+  const res = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages,
+      temperature: opts?.temperature ?? 0.6,
+      max_tokens: opts?.max_tokens ?? 1200,
+    }),
+  })
+
+  if (!res.ok) {
+    const errBody = await res.text()
+    throw new Error(`Groq API error (${res.status}): ${errBody}`)
+  }
+
+  const data = await res.json()
+  return data.choices?.[0]?.message?.content ?? 'No response from AI.'
+}
+
+// Fallback using the original z-ai-web-dev-sdk
+async function fallbackChat(messages: ChatMessage[], opts?: { temperature?: number; max_tokens?: number }): Promise<string> {
+  try {
+    const ZAI = (await import('z-ai-web-dev-sdk')).default
+    const zai = await ZAI.create()
+    const response = await zai.chat.completions.create({
+      messages,
+      temperature: opts?.temperature ?? 0.6,
+      max_tokens: opts?.max_tokens ?? 1200,
+    })
+    return response.choices?.[0]?.message?.content ?? 'No response from AI.'
+  } catch (err: any) {
+    return `(AI service unavailable: ${err?.message ?? 'unknown error'})`
+  }
 }
 
 // ============================================================
@@ -13,8 +62,7 @@ export async function getZAI() {
 // ============================================================
 export async function aiChat(message: string, context?: string) {
   try {
-    const zai = await getZAI()
-    const systemPrompt = `You are CompetitorIQ, an AI business intelligence assistant specialized in competitor analysis.
+    const systemPrompt = `You are CompeteIQ, an AI business intelligence assistant specialized in competitor analysis.
 You help users understand market dynamics by answering questions about competitors, pricing changes, product launches, hiring trends, news, and strategic positioning.
 
 Guidelines:
@@ -25,17 +73,15 @@ Guidelines:
 - If asked to compare companies, use clear comparison format
 - Format responses in Markdown
 - If context data is provided, USE it as the primary source of truth
-${context ? `\n--- CURRENT COMPETITORIQ DATABASE SNAPSHOT ---\n${context}\n--- END SNAPSHOT ---` : ''}`
+${context ? `\n--- CURRENT COMPETEIQ DATABASE SNAPSHOT ---\n${context}\n--- END SNAPSHOT ---` : ''}`
 
-    const response = await zai.chat.completions.create({
-      messages: [
+    return await groqChat(
+      [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: message },
       ],
-      temperature: 0.6,
-      max_tokens: 1200,
-    })
-    return response.choices?.[0]?.message?.content ?? 'No response from AI.'
+      { temperature: 0.6, max_tokens: 1200 }
+    )
   } catch (err: any) {
     return `(AI service unavailable: ${err?.message ?? 'unknown error'})`
   }
@@ -46,7 +92,6 @@ ${context ? `\n--- CURRENT COMPETITORIQ DATABASE SNAPSHOT ---\n${context}\n--- E
 // ============================================================
 export async function generateSWOT(competitorName: string, snapshot?: string) {
   try {
-    const zai = await getZAI()
     const prompt = `You are a strategic business analyst. Generate a SWOT analysis for the competitor "${competitorName}".
 
 ${snapshot ? `Use this real monitoring data as the basis:\n${snapshot}\n` : ''}
@@ -63,15 +108,13 @@ Return STRICT JSON with this exact shape:
 
 Each array should contain 3-5 concise, specific points grounded in real observations. The howToRespond array must contain 2-3 specific, actionable recommendations referencing actual observations from the data. Do not wrap the JSON in markdown fences.`
 
-    const response = await zai.chat.completions.create({
-      messages: [
+    const text = await groqChat(
+      [
         { role: 'system', content: 'You are a JSON-only API. Always respond with valid JSON.' },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.5,
-      max_tokens: 1500,
-    })
-    const text = response.choices?.[0]?.message?.content ?? '{}'
+      { temperature: 0.5, max_tokens: 1500 }
+    )
     // Strip any code fences if present
     const cleaned = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
     return JSON.parse(cleaned)
@@ -96,7 +139,6 @@ export async function generateReport(opts: {
   snapshot?: string
 }) {
   try {
-    const zai = await getZAI()
     const prompt = `Generate a ${opts.reportType} competitor intelligence report for the period: ${opts.period}.
 
 ${opts.snapshot ? `Use this monitoring snapshot:\n${opts.snapshot}\n` : ''}
@@ -118,15 +160,13 @@ Structure the report in Markdown:
 
 Be specific, data-driven, and actionable.`
 
-    const response = await zai.chat.completions.create({
-      messages: [
+    return await groqChat(
+      [
         { role: 'system', content: 'You are a senior business intelligence analyst producing executive-ready reports.' },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.5,
-      max_tokens: 1800,
-    })
-    return response.choices?.[0]?.message?.content ?? '# Report unavailable'
+      { temperature: 0.5, max_tokens: 1800 }
+    )
   } catch (err: any) {
     return `# ${opts.reportType} Report\n\nAI service unavailable (${err?.message}). Using snapshot data only.\n\n${opts.snapshot ?? ''}`
   }
@@ -137,9 +177,8 @@ Be specific, data-driven, and actionable.`
 // ============================================================
 export async function summarizeNews(title: string, content: string) {
   try {
-    const zai = await getZAI()
-    const response = await zai.chat.completions.create({
-      messages: [
+    return await groqChat(
+      [
         {
           role: 'system',
           content:
@@ -147,10 +186,8 @@ export async function summarizeNews(title: string, content: string) {
         },
         { role: 'user', content: `Title: ${title}\n\nContent: ${content}` },
       ],
-      temperature: 0.4,
-      max_tokens: 200,
-    })
-    return response.choices?.[0]?.message?.content ?? ''
+      { temperature: 0.4, max_tokens: 200 }
+    )
   } catch {
     return ''
   }
@@ -161,9 +198,8 @@ export async function summarizeNews(title: string, content: string) {
 // ============================================================
 export async function recommendAction(alertTitle: string, alertMessage: string, competitorName?: string) {
   try {
-    const zai = await getZAI()
-    const response = await zai.chat.completions.create({
-      messages: [
+    return await groqChat(
+      [
         {
           role: 'system',
           content:
@@ -174,10 +210,8 @@ export async function recommendAction(alertTitle: string, alertMessage: string, 
           content: `Competitor: ${competitorName ?? 'N/A'}\nEvent: ${alertTitle}\nDetails: ${alertMessage}\n\nSuggest strategic actions we should take:`,
         },
       ],
-      temperature: 0.6,
-      max_tokens: 250,
-    })
-    return response.choices?.[0]?.message?.content ?? ''
+      { temperature: 0.6, max_tokens: 250 }
+    )
   } catch {
     return ''
   }
@@ -188,9 +222,8 @@ export async function recommendAction(alertTitle: string, alertMessage: string, 
 // ============================================================
 export async function generateWeeklyInsight(snapshot: string) {
   try {
-    const zai = await getZAI()
-    const response = await zai.chat.completions.create({
-      messages: [
+    return await groqChat(
+      [
         {
           role: 'system',
           content:
@@ -198,10 +231,8 @@ export async function generateWeeklyInsight(snapshot: string) {
         },
         { role: 'user', content: `Weekly data snapshot:\n${snapshot}` },
       ],
-      temperature: 0.5,
-      max_tokens: 300,
-    })
-    return response.choices?.[0]?.message?.content ?? ''
+      { temperature: 0.5, max_tokens: 300 }
+    )
   } catch {
     return 'Weekly insight unavailable.'
   }
@@ -218,8 +249,7 @@ export async function generateOnboardingWelcome(opts: {
   scanTotals?: Record<string, number>
 }): Promise<string> {
   try {
-    const zai = await getZAI()
-    const prompt = `Generate a friendly, personalized welcome message for a user who just finished onboarding on CompetitorIQ.
+    const prompt = `Generate a friendly, personalized welcome message for a user who just finished onboarding on CompeteIQ.
 
 USER CONTEXT:
 - Industry (niche): ${opts.niche}
@@ -236,24 +266,22 @@ The message MUST follow this exact structure:
 
 Format as Markdown. Keep it under 200 words. Be warm and specific — not generic boilerplate.`
 
-    const response = await zai.chat.completions.create({
-      messages: [
+    return await groqChat(
+      [
         {
           role: 'system',
           content: 'You are a friendly product onboarding assistant. Always respond in Markdown.',
         },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.6,
-      max_tokens: 500,
-    })
-    return response.choices?.[0]?.message?.content ?? ''
+      { temperature: 0.6, max_tokens: 500 }
+    )
   } catch {
     // Fallback if AI is unavailable — still reference real scan data
     const p = opts.scanTotals?.pricingChanges || 0
     const pr = opts.scanTotals?.products || 0
     const n = opts.scanTotals?.newsArticles || 0
-    return `Welcome to CompetitorIQ! I see you're in **${opts.niche}** — here's how I can help you stay ahead.
+    return `Welcome to CompeteIQ! I see you're in **${opts.niche}** — here's how I can help you stay ahead.
 
 - I'll track pricing changes across your competitors in real time
 - I'll flag new product launches and feature updates

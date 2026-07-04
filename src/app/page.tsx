@@ -6,6 +6,7 @@ import { Topbar } from '@/components/layout/topbar'
 import { Providers } from '@/components/providers'
 import { AuthProvider, useAuth } from '@/components/auth/auth-provider'
 import { AuthScreen } from '@/components/auth/auth-screen'
+import { LandingPage } from '@/components/landing/landing-page'
 import { OnboardingScreen } from '@/components/onboarding/onboarding-screen'
 import { FirstScanScreen } from '@/components/onboarding/first-scan-screen'
 import { type NavKey, NAV_GROUPS } from '@/lib/nav'
@@ -105,7 +106,7 @@ function AppShell() {
           </div>
           <footer className="mt-8 pt-6 border-t text-center text-xs text-muted-foreground">
             <p>
-              <span className="font-semibold text-foreground">CompetitorIQ</span> — AI Competitor Intelligence Agent ·
+              <span className="font-semibold text-foreground">CompeteIQ</span> — AI Competitor Intelligence Agent ·
               Monitoring {NAV_GROUPS.reduce((s, g) => s + g.items.length, 0)} intelligence modules ·
               {' '}{new Date().getFullYear()}
             </p>
@@ -125,14 +126,14 @@ function AuthGate() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="size-8 animate-spin text-primary mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Loading CompetitorIQ…</p>
+          <p className="text-sm text-muted-foreground">Loading CompeteIQ…</p>
         </div>
       </div>
     )
   }
 
   if (state.status === 'unauthenticated') {
-    return <AuthScreen />
+    return <LandingPage />
   }
 
   if (state.phase === 'onboarding') {

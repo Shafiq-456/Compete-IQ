@@ -20,6 +20,8 @@ import { Separator } from '@/components/ui/separator'
 import { SeverityBadge, timeAgo, formatNumber } from '@/components/shared/primitives'
 import { toast } from 'sonner'
 import { type NavKey } from '@/lib/nav'
+import { useAuth } from '@/components/auth/auth-provider'
+import { UpgradeBanner } from '@/components/shared/upgrade-banner'
 import { fadeUp, scaleIn, slideInRight, staggerContainer, staggerContainerFast, glowPulse, hoverGlow, hoverLift } from '@/lib/animations'
 
 type DashboardData = {
@@ -45,6 +47,8 @@ type DashboardData = {
 const COLORS = ['#22d3ee', '#e879f9', '#fbbf24', '#a3e635', '#a78bfa', '#38bdf8', '#fb7185', '#fb923c']
 
 export function DashboardView({ onNavigate }: { onNavigate: (k: NavKey) => void }) {
+  const { state } = useAuth()
+  const userName = state.status === 'authenticated' ? (state.user.name || 'there') : 'there'
   const { data, isLoading, refetch, isFetching } = useQuery<DashboardData>({
     queryKey: ['dashboard'],
     queryFn: async () => {
@@ -82,7 +86,7 @@ export function DashboardView({ onNavigate }: { onNavigate: (k: NavKey) => void 
               AI-Powered Market Intelligence
             </motion.div>
             <h2 className="text-2xl font-bold tracking-tight">
-              <span className="text-gradient">Good morning, Jordan</span> 👋
+              <span className="text-gradient">Good morning, {userName}</span> 👋
             </h2>
             <p className="text-sm text-muted-foreground mt-1 max-w-xl">
               {stats?.changesToday ?? 0} competitor changes detected today ·{' '}
@@ -102,6 +106,8 @@ export function DashboardView({ onNavigate }: { onNavigate: (k: NavKey) => void 
           </div>
         </div>
       </motion.div>
+
+      <UpgradeBanner />
 
       {/* KPI cards */}
       <motion.div

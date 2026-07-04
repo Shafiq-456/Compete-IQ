@@ -86,38 +86,38 @@
    AURORA CYBERPUNK (DARK) — deep midnight indigo + electric cyan/magenta/violet
    ============================================================ */
 .dark {
-  --background: oklch(0.16 0.025 280);              /* deep violet-black */
-  --foreground: oklch(0.96 0.015 280);              /* soft off-white warm tint */
-  --card: oklch(0.21 0.03 280);                     /* slightly lighter, violet tint */
-  --card-foreground: oklch(0.96 0.015 280);
-  --popover: oklch(0.21 0.03 280);
-  --popover-foreground: oklch(0.96 0.015 280);
-  --primary: oklch(0.78 0.16 200);                  /* electric cyan */
-  --primary-foreground: oklch(0.15 0.03 280);
-  --secondary: oklch(0.27 0.03 280);
-  --secondary-foreground: oklch(0.96 0.015 280);
-  --muted: oklch(0.25 0.025 280);
-  --muted-foreground: oklch(0.70 0.025 280);
-  --accent: oklch(0.65 0.25 350);                   /* vibrant magenta */
-  --accent-foreground: oklch(0.97 0.01 350);
-  --destructive: oklch(0.65 0.25 16);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.78 0.16 200);
-  /* aurora neon chart palette */
-  --chart-1: oklch(0.78 0.16 200);                  /* electric cyan */
-  --chart-2: oklch(0.70 0.25 350);                  /* vibrant magenta */
-  --chart-3: oklch(0.82 0.16 85);                   /* amber/gold */
-  --chart-4: oklch(0.80 0.18 130);                  /* lime */
-  --chart-5: oklch(0.65 0.20 290);                  /* violet */
-  --sidebar: oklch(0.18 0.03 280);
-  --sidebar-foreground: oklch(0.96 0.015 280);
-  --sidebar-primary: oklch(0.78 0.16 200);
-  --sidebar-primary-foreground: oklch(0.15 0.03 280);
-  --sidebar-accent: oklch(0.27 0.03 280);
-  --sidebar-accent-foreground: oklch(0.96 0.015 280);
+  --background: oklch(0.08 0.005 240);              /* Deep pitch charcoal #070708 */
+  --foreground: oklch(0.98 0.003 240);              /* Frost white */
+  --card: oklch(0.12 0.005 240 / 45%);             /* Translucent glass panel */
+  --card-foreground: oklch(0.98 0.003 240);
+  --popover: oklch(0.12 0.005 240 / 75%);
+  --popover-foreground: oklch(0.98 0.003 240);
+  --primary: oklch(0.70 0.18 200);                  /* Neon blue / cyan */
+  --primary-foreground: oklch(0.08 0.005 240);
+  --secondary: oklch(0.16 0.005 240 / 30%);
+  --secondary-foreground: oklch(0.98 0.003 240);
+  --muted: oklch(0.16 0.005 240 / 20%);
+  --muted-foreground: oklch(0.65 0.005 240);
+  --accent: oklch(0.65 0.22 310);                   /* Neon purple / magenta */
+  --accent-foreground: oklch(0.98 0.003 240);
+  --destructive: oklch(0.60 0.20 16);
+  --border: oklch(1 0 0 / 8%);                      /* Extra thin glass border */
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.70 0.18 200);
+  /* refined neon chart palette */
+  --chart-1: oklch(0.70 0.18 200);                  /* Neon blue */
+  --chart-2: oklch(0.65 0.22 310);                  /* Neon purple */
+  --chart-3: oklch(0.85 0.15 85);                   /* Neon amber */
+  --chart-4: oklch(0.72 0.18 140);                  /* Muted emerald */
+  --chart-5: oklch(0.55 0.15 270);                  /* Violet */
+  --sidebar: oklch(0.10 0.005 240 / 60%);           /* Glass sidebar background */
+  --sidebar-foreground: oklch(0.98 0.003 240);
+  --sidebar-primary: oklch(0.70 0.18 200);
+  --sidebar-primary-foreground: oklch(0.08 0.005 240);
+  --sidebar-accent: oklch(0.16 0.005 240 / 30%);
+  --sidebar-accent-foreground: oklch(0.98 0.003 240);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.78 0.16 200);
+  --sidebar-ring: oklch(0.70 0.18 200);
 }
 
 @layer base {
@@ -139,7 +139,7 @@
 /* ============================================================
    ANIMATED AURORA BACKGROUND
    Fixed, pointer-events:none, sits behind all content via z-index:-1.
-   Three drifting blobs (cyan / magenta / violet) + faint command-grid.
+   Three drifting blobs (neon blue / neon purple / violet) + faint command-grid.
    ============================================================ */
 .aurora-bg {
   position: fixed;
@@ -163,7 +163,7 @@
   height: 52vw;
   top: -12vw;
   left: -10vw;
-  background: radial-gradient(circle at center, var(--chart-1), transparent 62%);
+  background: radial-gradient(circle at center, oklch(0.70 0.18 200 / 18%), transparent 62%);
   animation: aurora-drift-1 26s ease-in-out infinite;
 }
 
@@ -172,7 +172,7 @@
   height: 46vw;
   bottom: -14vw;
   right: -8vw;
-  background: radial-gradient(circle at center, var(--chart-2), transparent 62%);
+  background: radial-gradient(circle at center, oklch(0.65 0.22 310 / 18%), transparent 62%);
   animation: aurora-drift-2 32s ease-in-out infinite;
 }
 
@@ -181,7 +181,7 @@
   height: 40vw;
   top: 30vh;
   left: 32vw;
-  background: radial-gradient(circle at center, var(--chart-5), transparent 62%);
+  background: radial-gradient(circle at center, oklch(0.60 0.15 250 / 10%), transparent 62%);
   animation: aurora-drift-3 30s ease-in-out infinite;
   opacity: 0.28;
 }
@@ -280,10 +280,10 @@
   }
 
   .glow-primary {
-    box-shadow: 0 0 24px var(--primary), 0 0 4px var(--primary);
+    box-shadow: 0 0 12px color-mix(in oklch, var(--primary) 12%, transparent), 0 0 1px var(--primary);
   }
   .glow-accent {
-    box-shadow: 0 0 24px var(--accent), 0 0 4px var(--accent);
+    box-shadow: 0 0 12px color-mix(in oklch, var(--accent) 12%, transparent), 0 0 1px var(--accent);
   }
 
   /* Pulsing red glow for critical alert cards */
@@ -294,9 +294,9 @@
     animation: critical-pulse 2.4s ease-in-out infinite;
   }
 
-  /* Cyan→magenta→violet gradient text */
+  /* Premium Gold-Platinum gradient text */
   .text-gradient {
-    background: linear-gradient(90deg, var(--primary), var(--accent) 60%, var(--chart-5));
+    background: linear-gradient(90deg, var(--foreground) 10%, var(--accent) 65%, var(--chart-3));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -308,7 +308,7 @@
     border: 1px solid transparent;
     background-image:
       linear-gradient(var(--card), var(--card)),
-      linear-gradient(135deg, var(--primary), var(--accent), var(--chart-5));
+      linear-gradient(135deg, var(--border), var(--accent) 50%, var(--border));
     background-origin: border-box;
     background-clip: padding-box, border-box;
   }
@@ -369,3 +369,74 @@
   }
   .aurora-blob { opacity: 0.18 !important; }
 }
+
+/* ============================================================
+   CUSTOM SPINNING INTEL LOADER (Uiverse.io inspired)
+   ============================================================ */
+.loader {
+  --dim: 2.2rem;
+  width: var(--dim);
+  height: var(--dim);
+  position: relative;
+  animation: spin988 2s linear infinite;
+}
+
+.loader .circle {
+  --dim: 0.8rem;
+  width: var(--dim);
+  height: var(--dim);
+  border-radius: 50%;
+  position: absolute;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.loader .circle:nth-child(1) {
+  top: 0;
+  left: 0;
+  background-color: #22d3ee; /* Electric Cyan */
+  color: #22d3ee;
+}
+
+.loader .circle:nth-child(2) {
+  top: 0;
+  right: 0;
+  background-color: #e879f9; /* Vibrant Magenta */
+  color: #e879f9;
+}
+
+.loader .circle:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  background-color: #a78bfa; /* Violet */
+  color: #a78bfa;
+}
+
+.loader .circle:nth-child(4) {
+  bottom: 0;
+  right: 0;
+  background-color: #fbbf24; /* Amber */
+  color: #fbbf24;
+}
+
+@keyframes spin988 {
+  0% {
+    transform: scale(1) rotate(0);
+  }
+
+  20%, 25% {
+    transform: scale(1.2) rotate(90deg);
+  }
+
+  45%, 50% {
+    transform: scale(1) rotate(180deg);
+  }
+
+  70%, 75% {
+    transform: scale(1.2) rotate(270deg);
+  }
+
+  95%, 100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+

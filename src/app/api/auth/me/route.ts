@@ -17,6 +17,7 @@ export async function GET() {
       hasRunFirstScan: user.hasRunFirstScan,
       businessNiche: user.businessNiche,
       businessName: user.businessName,
+      plan: user.plan,
     },
   })
 }

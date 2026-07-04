@@ -18,12 +18,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, alreadyRan: true, message: 'First scan already complete' })
     }
 
-    const competitors = await db.competitor.findMany({ where: { userId: user.id } })
+    let competitors = await db.competitor.findMany({ where: { userId: user.id } })
     if (competitors.length === 0) {
-      return NextResponse.json({
-        ok: false,
-        error: 'No competitors found. Please add at least one competitor before scanning.',
-      }, { status: 400 })
+      // Safety net: auto-create sample competitors based on niche so the scan never fails
+      const nicheDefaults: Record<string, string[]> = {
+        'E-commerce': ['Amazon', 'Shopify'],
+        'SaaS': ['Salesforce', 'HubSpot'],
+        'FinTech': ['Stripe', 'Square'],
+        'Healthcare': ['Teladoc', 'Amwell'],
+        'Real Estate': ['Zillow', 'Redfin'],
+        'Education': ['Coursera', 'Udemy'],
+        'Marketing': ['HubSpot', 'Mailchimp'],
+        'Food & Beverage': ['DoorDash', 'Uber Eats'],
+        'Other': ['Competitor A', 'Competitor B'],
+      }
+      const niche = (user.businessNiche as string) || 'Other'
+      const defaults = nicheDefaults[niche] || nicheDefaults['Other']
+      for (const name of defaults) {
+        await db.competitor.create({
+          data: {
+            userId: user.id,
+            name,
+            industry: niche,
+            website: `https://${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+            country: 'Unknown',
+            description: `Auto-added sample competitor in ${niche} (you can edit or remove this later).`,
+            priority: 'High',
+            threatLevel: 'High',
+            logo: '🏢',
+            status: 'Active',
+          },
+        })
+      }
+      competitors = await db.competitor.findMany({ where: { userId: user.id } })
     }
 
     const niche = (user.businessNiche as any) || 'Other'

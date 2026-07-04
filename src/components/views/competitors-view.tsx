@@ -28,6 +28,7 @@ import { PageHeader, SeverityBadge, StatusDot } from '@/components/shared/primit
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { staggerContainer, slideInRight, fadeUp, hoverLift } from '@/lib/animations'
+import { UpgradeBanner } from '@/components/shared/upgrade-banner'
 
 type Competitor = {
   id: string; name: string; industry: string; website: string; country: string;
@@ -64,8 +65,9 @@ export function CompetitorsView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error('Failed to create competitor')
-      return res.json()
+      const j = await res.json()
+      if (!res.ok) throw new Error(j.error || 'Failed to create competitor')
+      return j
     },
     onSuccess: () => {
       toast.success('Competitor added — monitoring started')
@@ -126,6 +128,10 @@ export function CompetitorsView() {
             </Button>
           }
         />
+      </motion.div>
+
+      <motion.div variants={fadeUp} className="mt-4">
+        <UpgradeBanner />
       </motion.div>
 
       {/* Filters */}
