@@ -5,7 +5,10 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 // Automatically rewrite direct Supabase URLs (port 5432) to use connection pooler (port 6543) in serverless environments
-const rawUrl = process.env.DATABASE_URL
+let rawUrl = process.env.DATABASE_URL
+if (rawUrl) {
+  rawUrl = rawUrl.replace(/^["']|["']$/g, '').trim()
+}
 let connectionUrl = rawUrl
 
 if (rawUrl && rawUrl.includes('supabase.co') && rawUrl.includes(':5432')) {
